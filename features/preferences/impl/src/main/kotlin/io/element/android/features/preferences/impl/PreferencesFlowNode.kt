@@ -167,10 +167,6 @@ class PreferencesFlowNode(
                         callback.navigateToLinkNewDevice()
                     }
 
-                    override fun navigateToUserProfile(matrixUser: MatrixUser) {
-                        backstack.push(NavTarget.UserProfile(matrixUser))
-                    }
-
                     override fun navigateToBlockedUsers() {
                         backstack.push(NavTarget.BlockedUsers)
                     }
@@ -286,7 +282,13 @@ class PreferencesFlowNode(
                 val inputs = EditUserProfileNode.Inputs(navTarget.matrixUser)
                 val callback = object : EditUserProfileNode.Callback {
                     override fun onDone() {
-                        backstack.pop()
+                        // When Edit profile is the root of the backstack (opened from the Home
+                        // Profile tab), there is nothing to pop: close the whole Settings flow.
+                        if (backstack.canPop()) {
+                            backstack.pop()
+                        } else {
+                            navigateUp()
+                        }
                     }
                 }
                 createNode<EditUserProfileNode>(buildContext, listOf(inputs, callback))

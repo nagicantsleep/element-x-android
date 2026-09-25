@@ -89,6 +89,7 @@ fun HomeTopBar(
     onMenuActionClick: (RoomListMenuAction) -> Unit,
     onOpenSettings: () -> Unit,
     onAccountSwitch: (SessionId) -> Unit,
+    onStartChatClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     canReportBug: Boolean,
     displayFilters: Boolean,
@@ -109,13 +110,16 @@ fun HomeTopBar(
             ),
             title = {
                 val displayTitle = when (selectedNavigationItem) {
-                    HomeNavigationBarItem.Chats -> {
+                    HomeNavigationBarItem.Messages -> {
                         when (spaceFiltersState) {
                             is SpaceFiltersState.Selected -> spaceFiltersState.selectedFilter.spaceRoom.displayName
                             else -> stringResource(selectedNavigationItem.labelRes)
                         }
                     }
-                    HomeNavigationBarItem.Spaces -> stringResource(selectedNavigationItem.labelRes)
+                    HomeNavigationBarItem.Contacts,
+                    HomeNavigationBarItem.Discover,
+                    HomeNavigationBarItem.Profile,
+                    -> stringResource(selectedNavigationItem.labelRes)
                 }
                 Text(
                     modifier = Modifier.semantics {
@@ -134,7 +138,14 @@ fun HomeTopBar(
                 )
             },
             actions = {
-                if (selectedNavigationItem == HomeNavigationBarItem.Chats) {
+                if (selectedNavigationItem == HomeNavigationBarItem.Messages) {
+                    // Z/L layout: the compose action lives here now that the FAB has been removed.
+                    IconButton(onClick = onStartChatClick) {
+                        Icon(
+                            imageVector = CompoundIcons.Compose(),
+                            contentDescription = stringResource(CommonStrings.action_create_room),
+                        )
+                    }
                     RoomListMenuItems(
                         onToggleSearch = onToggleSearch,
                         onMenuActionClick = onMenuActionClick,
@@ -347,13 +358,14 @@ private fun AccountIcon(
 @Composable
 internal fun HomeTopBarPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
+        selectedNavigationItem = HomeNavigationBarItem.Messages,
         currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
         showAvatarIndicator = false,
         areSearchResultsDisplayed = false,
         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
         onOpenSettings = {},
         onAccountSwitch = {},
+        onStartChatClick = {},
         onToggleSearch = {},
         canReportBug = true,
         displayFilters = true,
@@ -368,13 +380,14 @@ internal fun HomeTopBarPreview() = ElementPreview {
 @Composable
 internal fun HomeTopBarSpaceFiltersSelectedPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
+        selectedNavigationItem = HomeNavigationBarItem.Messages,
         currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
         showAvatarIndicator = false,
         areSearchResultsDisplayed = false,
         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
         onOpenSettings = {},
         onAccountSwitch = {},
+        onStartChatClick = {},
         onToggleSearch = {},
         canReportBug = true,
         displayFilters = true,
@@ -389,13 +402,14 @@ internal fun HomeTopBarSpaceFiltersSelectedPreview() = ElementPreview {
 @Composable
 internal fun HomeTopBarSpacesPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Spaces,
+        selectedNavigationItem = HomeNavigationBarItem.Discover,
         currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
         showAvatarIndicator = false,
         areSearchResultsDisplayed = false,
         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
         onOpenSettings = {},
         onAccountSwitch = {},
+        onStartChatClick = {},
         onToggleSearch = {},
         canReportBug = true,
         displayFilters = false,
@@ -410,13 +424,14 @@ internal fun HomeTopBarSpacesPreview() = ElementPreview {
 @Composable
 internal fun HomeTopBarWithIndicatorPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
+        selectedNavigationItem = HomeNavigationBarItem.Messages,
         currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
         showAvatarIndicator = true,
         areSearchResultsDisplayed = false,
         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
         onOpenSettings = {},
         onAccountSwitch = {},
+        onStartChatClick = {},
         onToggleSearch = {},
         canReportBug = true,
         displayFilters = true,
@@ -431,13 +446,14 @@ internal fun HomeTopBarWithIndicatorPreview() = ElementPreview {
 @Composable
 internal fun HomeTopBarMultiAccountPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
+        selectedNavigationItem = HomeNavigationBarItem.Messages,
         currentUserAndNeighbors = aMatrixUserList().take(3).toImmutableList(),
         showAvatarIndicator = false,
         areSearchResultsDisplayed = false,
         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
         onOpenSettings = {},
         onAccountSwitch = {},
+        onStartChatClick = {},
         onToggleSearch = {},
         canReportBug = true,
         displayFilters = true,

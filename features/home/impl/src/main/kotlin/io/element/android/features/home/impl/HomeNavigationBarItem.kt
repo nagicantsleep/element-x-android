@@ -10,30 +10,50 @@ package io.element.android.features.home.impl
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import io.element.android.compound.tokens.generated.CompoundIcons
 
+/**
+ * The four destinations of the Z/L bottom navigation bar.
+ *
+ * The Z/L layout follows the Zalo/LINE convention: a full-width bar with an icon on top and a
+ * label underneath, a filled ("solid") icon for the selected tab, and a badge for new activity.
+ */
 enum class HomeNavigationBarItem(
     @StringRes
     val labelRes: Int,
 ) {
-    Chats(
-        labelRes = R.string.screen_home_tab_chats
+    Messages(
+        labelRes = R.string.screen_home_tab_messages
     ),
-    Spaces(
-        labelRes = R.string.screen_home_tab_spaces
+    Contacts(
+        labelRes = R.string.screen_home_tab_contacts
+    ),
+    Discover(
+        labelRes = R.string.screen_home_tab_discover
+    ),
+    Profile(
+        labelRes = R.string.screen_home_tab_profile
     );
 
+    /**
+     * The icon for this destination. [isSelected] swaps in the filled variant where Compound has
+     * one, so the selected tab reads as "active" the way Zalo/LINE do.
+     */
     @Composable
     fun icon(
         isSelected: Boolean,
-    ) = when (this) {
-        Chats -> if (isSelected) CompoundIcons.ChatSolid() else CompoundIcons.Chat()
-        Spaces -> if (isSelected) CompoundIcons.SpaceSolid() else CompoundIcons.Space()
+    ): ImageVector = when (this) {
+        Messages -> if (isSelected) CompoundIcons.ChatSolid() else CompoundIcons.Chat()
+        Contacts -> if (isSelected) CompoundIcons.UserSolid() else CompoundIcons.User()
+        // Compound has no `ExploreSolid`, so the compass icon is used for both states.
+        Discover -> CompoundIcons.Explore()
+        Profile -> if (isSelected) CompoundIcons.UserProfileSolid() else CompoundIcons.UserProfile()
     }
 
     companion object {
         fun from(index: Int): HomeNavigationBarItem {
-            return entries.getOrElse(index) { Chats }
+            return entries.getOrElse(index) { Messages }
         }
     }
 }

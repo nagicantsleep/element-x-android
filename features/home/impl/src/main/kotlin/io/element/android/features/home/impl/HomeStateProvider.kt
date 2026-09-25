@@ -18,7 +18,11 @@ import io.element.android.features.home.impl.spaces.HomeSpacesState
 import io.element.android.features.home.impl.spaces.aHomeSpacesState
 import io.element.android.features.logout.api.direct.DirectLogoutState
 import io.element.android.features.logout.api.direct.aDirectLogoutState
+import io.element.android.features.startchat.impl.userlist.UserListState
+import io.element.android.features.startchat.impl.userlist.aUserListState
+import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarMessage
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.libraries.ui.strings.CommonStrings
@@ -41,12 +45,12 @@ open class HomeStateProvider : PreviewParameterProvider<HomeState> {
                 homeSpacesState = aHomeSpacesState(),
             ),
             aHomeState(
-                currentHomeNavigationBarItem = HomeNavigationBarItem.Spaces,
+                currentHomeNavigationBarItem = HomeNavigationBarItem.Discover,
             ),
         ) + RoomListStateProvider().values.map {
             aHomeState(roomListState = it)
         } + aHomeState(
-            currentHomeNavigationBarItem = HomeNavigationBarItem.Spaces,
+            currentHomeNavigationBarItem = HomeNavigationBarItem.Discover,
             homeSpacesState = aHomeSpacesState(
                 spaceRooms = emptyList(),
             ),
@@ -59,9 +63,11 @@ internal fun aHomeState(
     showAvatarIndicator: Boolean = false,
     hasNetworkConnection: Boolean = true,
     snackbarMessage: SnackbarMessage? = null,
-    currentHomeNavigationBarItem: HomeNavigationBarItem = HomeNavigationBarItem.Chats,
+    currentHomeNavigationBarItem: HomeNavigationBarItem = HomeNavigationBarItem.Messages,
     roomListState: RoomListState = aRoomListState(),
     homeSpacesState: HomeSpacesState = aHomeSpacesState(),
+    contactsUserListState: UserListState = aUserListState(),
+    contactsStartDmAction: AsyncAction<RoomId> = AsyncAction.Uninitialized,
     canReportBug: Boolean = true,
     directLogoutState: DirectLogoutState = aDirectLogoutState(),
     eventSink: (HomeEvent) -> Unit = {}
@@ -75,5 +81,7 @@ internal fun aHomeState(
     currentHomeNavigationBarItem = currentHomeNavigationBarItem,
     roomListState = roomListState,
     homeSpacesState = homeSpacesState,
+    contactsUserListState = contactsUserListState,
+    contactsStartDmAction = contactsStartDmAction,
     eventSink = eventSink,
 )

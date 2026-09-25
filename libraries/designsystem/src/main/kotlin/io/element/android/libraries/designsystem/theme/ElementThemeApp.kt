@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import io.element.android.compound.colors.SemanticColorsLightDark
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.theme.Theme
 import io.element.android.compound.theme.mapToTheme
@@ -67,6 +68,14 @@ fun ElementThemeApp(
     val theme by remember(isBlackThemeAllowed) {
         appPreferencesStore.getThemeFlow().mapToTheme(allowBlackTheme = isBlackThemeAllowed)
     }.collectAsState(initial = Theme.System)
+    val brandTheme by remember {
+        appPreferencesStore.getBrandThemeFlow()
+    }.collectAsState(initial = null)
+    val resolvedColors = remember(compoundLight, compoundDark, brandTheme) {
+        BrandTheme.fromStorage(brandTheme).semanticColors(
+            SemanticColorsLightDark(light = compoundLight, dark = compoundDark)
+        )
+    }
     LaunchedEffect(theme) {
         AppCompatDelegate.setDefaultNightMode(
             when (theme) {
@@ -82,8 +91,8 @@ fun ElementThemeApp(
         ElementTheme(
             theme = theme,
             content = content,
-            compoundLight = compoundLight,
-            compoundDark = compoundDark,
+            compoundLight = resolvedColors.light,
+            compoundDark = resolvedColors.dark,
         )
     }
 }

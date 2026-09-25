@@ -23,6 +23,9 @@ interface AppPreferencesStore {
     suspend fun setTheme(theme: String)
     fun getThemeFlow(): Flow<String?>
 
+    suspend fun setBrandTheme(brandTheme: String)
+    fun getBrandThemeFlow(): Flow<String?>
+
     suspend fun setLiveLocationMinimumDistanceInMetersUpdate(value: Int)
     fun getLiveLocationMinimumDistanceInMetersUpdateFlow(): Flow<Int>
 

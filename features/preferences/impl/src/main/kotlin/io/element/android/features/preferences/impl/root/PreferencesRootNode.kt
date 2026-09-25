@@ -24,7 +24,6 @@ import io.element.android.features.logout.api.direct.DirectLogoutView
 import io.element.android.libraries.androidutils.browser.openUrlInChromeCustomTab
 import io.element.android.libraries.architecture.callback
 import io.element.android.libraries.di.SessionScope
-import io.element.android.libraries.matrix.api.user.MatrixUser
 
 @ContributesNode(SessionScope::class)
 @AssistedInject
@@ -46,7 +45,6 @@ class PreferencesRootNode(
         fun navigateToAdvancedSettings()
         fun navigateToLabs()
         fun navigateToLinkNewDevice()
-        fun navigateToUserProfile(matrixUser: MatrixUser)
         fun navigateToBlockedUsers()
         fun startSignOutFlow()
         fun startAccountDeactivationFlow()
@@ -89,7 +87,6 @@ class PreferencesRootNode(
             onManageAccountClick = { onManageAccountClick(activity, it, isDark) },
             onOpenNotificationSettings = callback::navigateToNotificationSettings,
             onOpenLockScreenSettings = callback::navigateToLockScreenSettings,
-            onOpenUserProfile = callback::navigateToUserProfile,
             onOpenBlockedUsers = callback::navigateToBlockedUsers,
             onSignOutClick = {
                 if (state.directLogoutState.canDoDirectSignOut) {

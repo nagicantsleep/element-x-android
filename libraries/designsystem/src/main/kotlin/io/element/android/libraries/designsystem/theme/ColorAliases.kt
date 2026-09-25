@@ -38,10 +38,22 @@ val SemanticColors.unreadIndicator
 val SemanticColors.placeholderBackground
     get() = bgSubtleSecondary
 
-// This color is not present in Semantic color, so put hard-coded value for now
+// The "from me" bubble follows the brand accent tint so a Z/L theme is visible
+// in the conversation itself, not just in buttons. Compound has no dedicated
+// bubble token, so bgAccentSelected (a soft accent surface, already used for
+// selected formatting options) is the closest semantic fit. The stock palette
+// keeps the previous hard-coded greys so the default look is unchanged.
 @OptIn(CoreColorToken::class)
 val SemanticColors.messageFromMeBackground
-    get() = if (isLight) LightColorTokens.colorGray400 else DarkColorTokens.colorGray500
+    get() = if (isDefaultAccent) {
+        if (isLight) LightColorTokens.colorGray400 else DarkColorTokens.colorGray500
+    } else {
+        bgAccentSelected
+    }
+
+private val SemanticColors.isDefaultAccent: Boolean
+    @OptIn(CoreColorToken::class)
+    get() = bgAccentRest == if (isLight) LightColorTokens.colorGreen900 else DarkColorTokens.colorGreen900
 
 // This color is not present in Semantic color, so put hard-coded value for now
 @OptIn(CoreColorToken::class)

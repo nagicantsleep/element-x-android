@@ -221,6 +221,7 @@ class HomeFlowNode(
                 homeState = state,
                 onRoomClick = ::navigateToRoom,
                 onSettingsClick = callback::navigateToSettings,
+                onEditProfileClick = callback::navigateToEditProfile,
                 onStartChatClick = callback::navigateToCreateRoom,
                 onCreateSpaceClick = callback::navigateToCreateSpace,
                 onSetUpRecoveryClick = callback::navigateToSetUpRecovery,

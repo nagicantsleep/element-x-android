@@ -16,6 +16,7 @@ import io.element.android.libraries.architecture.FeatureEntryPoint
 import io.element.android.libraries.architecture.NodeInputs
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.user.MatrixUser
 import kotlinx.parcelize.Parcelize
 
 interface PreferencesEntryPoint : FeatureEntryPoint {
@@ -31,6 +32,16 @@ interface PreferencesEntryPoint : FeatureEntryPoint {
 
         @Parcelize
         data object DeveloperSettings : InitialTarget
+
+        /**
+         * Opens the Settings flow directly on the "Edit profile" screen.
+         *
+         * Used by the Home Profile tab, which is the single place where the signed-in identity
+         * is displayed (Z/L layout). The Settings flow is then the pushed screen, so the
+         * "Edit profile" screen is its backstack root.
+         */
+        @Parcelize
+        data class UserProfile(val matrixUser: MatrixUser) : InitialTarget
     }
 
     data class Params(val initialElement: InitialTarget) : NodeInputs

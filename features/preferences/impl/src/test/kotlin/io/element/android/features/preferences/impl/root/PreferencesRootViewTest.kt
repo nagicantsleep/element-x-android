@@ -19,7 +19,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import io.element.android.features.preferences.impl.R
-import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.libraries.matrix.test.A_USER_ID_2
 import io.element.android.libraries.matrix.ui.components.aMatrixUser
 import io.element.android.libraries.ui.strings.CommonStrings
@@ -45,22 +44,6 @@ class PreferencesRootViewTest : RobolectricTest() {
                 onBackClick = callback,
             )
             pressBack()
-        }
-    }
-
-    @Test
-    fun `click on User profile invokes the expected callback`() = runAndroidComposeUiTest {
-        val eventsRecorder = EventsRecorder<PreferencesRootEvent>(expectEvents = false)
-        val user = aMatrixUser()
-        ensureCalledOnceWithParam(user) { callback ->
-            setView(
-                aPreferencesRootState(
-                    myUser = user,
-                    eventSink = eventsRecorder,
-                ),
-                onOpenUserProfile = callback,
-            )
-            onNodeWithText("Alice").performClick()
         }
     }
 
@@ -458,7 +441,6 @@ private fun AndroidComposeUiTest<ComponentActivity>.setView(
     onOpenAdvancedSettings: () -> Unit = EnsureNeverCalled(),
     onOpenLabs: () -> Unit = EnsureNeverCalled(),
     onOpenNotificationSettings: () -> Unit = EnsureNeverCalled(),
-    onOpenUserProfile: (MatrixUser) -> Unit = EnsureNeverCalledWithParam(),
     onOpenBlockedUsers: () -> Unit = EnsureNeverCalled(),
     onSignOutClick: () -> Unit = EnsureNeverCalled(),
     onDeactivateClick: () -> Unit = EnsureNeverCalled(),
@@ -479,7 +461,6 @@ private fun AndroidComposeUiTest<ComponentActivity>.setView(
             onOpenAdvancedSettings = onOpenAdvancedSettings,
             onOpenLabs = onOpenLabs,
             onOpenNotificationSettings = onOpenNotificationSettings,
-            onOpenUserProfile = onOpenUserProfile,
             onOpenBlockedUsers = onOpenBlockedUsers,
             onSignOutClick = onSignOutClick,
             onDeactivateClick = onDeactivateClick,

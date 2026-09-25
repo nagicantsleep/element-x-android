@@ -39,6 +39,8 @@ fun aAdvancedSettingsState(
     mediaOptimizationState: MediaOptimizationState = MediaOptimizationState.AllMedia(isEnabled = false),
     theme: ThemeOption = ThemeOption.System,
     availableThemeOptions: ImmutableList<ThemeOption> = ThemeOption.entries.toImmutableList(),
+    brandTheme: BrandThemeOption = BrandThemeOption.Default,
+    availableBrandThemeOptions: ImmutableList<BrandThemeOption> = BrandThemeOption.entries.toImmutableList(),
     hideInviteAvatars: Boolean = false,
     timelineMediaPreviewValue: MediaPreviewValue = MediaPreviewValue.On,
     liveLocationMinimumDistanceUpdate: Int? = 50,
@@ -51,6 +53,8 @@ fun aAdvancedSettingsState(
     mediaOptimizationState = mediaOptimizationState,
     theme = theme,
     availableThemeOptions = availableThemeOptions,
+    brandTheme = brandTheme,
+    availableBrandThemeOptions = availableBrandThemeOptions,
     mediaPreviewConfigState = MediaPreviewConfigState(
         hideInviteAvatars = hideInviteAvatars,
         timelineMediaPreviewValue = timelineMediaPreviewValue,

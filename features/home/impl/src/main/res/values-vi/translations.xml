@@ -15,6 +15,11 @@
   <string name="full_screen_intent_banner_message">"Để đảm bảo bạn không bỏ lỡ bất kỳ cuộc gọi quan trọng nào, vui lòng thay đổi cài đặt để cho phép thông báo toàn màn hình khi điện thoại của bạn bị khóa."</string>
   <string name="full_screen_intent_banner_title">"Nâng cao trải nghiệm cuộc gọi của bạn"</string>
   <string name="screen_home_tab_chats">"Cuộc trò chuyện"</string>
+  <string name="screen_home_tab_messages">"Tin nhắn"</string>
+  <string name="screen_home_tab_contacts">"Danh bạ"</string>
+  <string name="screen_home_tab_discover">"Khám phá"</string>
+  <string name="screen_home_tab_edit_profile">"Chỉnh sửa hồ sơ"</string>
+  <string name="screen_home_tab_profile">"Cá nhân"</string>
   <string name="screen_invites_decline_chat_message">"Bạn có chắc muốn từ chối lời mời tham gia %1$s không?"</string>
   <string name="screen_invites_decline_chat_title">"Từ chối lời mời"</string>
   <string name="screen_invites_decline_direct_chat_message">"Bạn có chắc muốn từ chối cuộc trò chuyện riêng với %1$s không?"</string>

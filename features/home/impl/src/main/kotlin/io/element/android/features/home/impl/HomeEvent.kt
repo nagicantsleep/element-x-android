@@ -9,8 +9,11 @@
 package io.element.android.features.home.impl
 
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.user.MatrixUser
 
 sealed interface HomeEvent {
     data class SelectHomeNavigationBarItem(val item: HomeNavigationBarItem) : HomeEvent
     data class SwitchToAccount(val sessionId: SessionId) : HomeEvent
+    data class StartChatWithUser(val user: MatrixUser) : HomeEvent
+    data object CancelStartChat : HomeEvent
 }

@@ -13,7 +13,9 @@ import io.element.android.features.home.impl.roomlist.aRoomListState
 import io.element.android.features.home.impl.spaces.HomeSpacesState
 import io.element.android.features.home.impl.spaces.aHomeSpacesState
 import io.element.android.features.logout.api.direct.aDirectLogoutState
+import io.element.android.features.invitepeople.test.FakeStartDMAction
 import io.element.android.features.rageshake.api.RageshakeFeatureAvailability
+import io.element.android.features.startchat.impl.userlist.UserListDataStore
 import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
 import io.element.android.libraries.indicator.api.IndicatorService
@@ -32,6 +34,7 @@ import io.element.android.libraries.sessionstorage.test.InMemorySessionStore
 import io.element.android.libraries.sessionstorage.test.aSessionData
 import io.element.android.tests.testutils.WarmUpRule
 import io.element.android.tests.testutils.test
+import io.element.android.libraries.usersearch.test.FakeUserRepository
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -139,10 +142,10 @@ class HomePresenterTest {
         )
         presenter.test {
             val initialState = awaitItem()
-            assertThat(initialState.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Chats)
-            initialState.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.Spaces))
+            assertThat(initialState.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Messages)
+            initialState.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.Discover))
             val finalState = awaitItem()
-            assertThat(finalState.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Spaces)
+            assertThat(finalState.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Discover)
         }
     }
 }
@@ -165,4 +168,8 @@ internal fun createHomePresenter(
     logoutPresenter = { aDirectLogoutState() },
     rageshakeFeatureAvailability = rageshakeFeatureAvailability,
     sessionStore = sessionStore,
+    userListPresenterFactory = FakeUserListPresenterFactory(),
+    userRepository = FakeUserRepository(),
+    userListDataStore = UserListDataStore(),
+    startDMAction = FakeStartDMAction(),
 )

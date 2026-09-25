@@ -344,6 +344,17 @@ class LoggedInFlowNode(
                         backstack.push(NavTarget.Settings())
                     }
 
+                    override fun navigateToEditProfile() {
+                        // Z/L layout: "Edit profile" is reachable from the Home Profile tab.
+                        // Reuse the existing Edit-profile node by opening the Settings flow
+                        // directly on it.
+                        backstack.push(
+                            NavTarget.Settings(
+                                PreferencesEntryPoint.InitialTarget.UserProfile(matrixClient.userProfile.value)
+                            )
+                        )
+                    }
+
                     override fun navigateToCreateRoom() {
                         backstack.push(NavTarget.CreateRoom)
                     }

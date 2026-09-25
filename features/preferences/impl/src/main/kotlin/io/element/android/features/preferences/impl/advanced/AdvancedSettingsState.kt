@@ -22,6 +22,8 @@ data class AdvancedSettingsState(
     val mediaOptimizationState: MediaOptimizationState?,
     val theme: ThemeOption,
     val availableThemeOptions: ImmutableList<ThemeOption>,
+    val brandTheme: BrandThemeOption,
+    val availableBrandThemeOptions: ImmutableList<BrandThemeOption>,
     val mediaPreviewConfigState: MediaPreviewConfigState,
     val liveLocationMinimumDistanceUpdate: Int?,
     val eventSink: (AdvancedSettingsEvents) -> Unit
@@ -63,5 +65,25 @@ enum class ThemeOption : DropdownOption {
         @Composable
         @ReadOnlyComposable
         override fun getText(): String = stringResource(R.string.theme_black)
+    }
+}
+
+enum class BrandThemeOption : DropdownOption {
+    Default {
+        @Composable
+        @ReadOnlyComposable
+        override fun getText(): String = stringResource(R.string.theme_brand_default)
+    },
+
+    Z {
+        @Composable
+        @ReadOnlyComposable
+        override fun getText(): String = stringResource(R.string.theme_brand_z)
+    },
+
+    L {
+        @Composable
+        @ReadOnlyComposable
+        override fun getText(): String = stringResource(R.string.theme_brand_l)
     }
 }

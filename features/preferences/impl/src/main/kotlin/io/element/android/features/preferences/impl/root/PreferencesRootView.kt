@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.preferences.impl.R
-import io.element.android.features.preferences.impl.user.UserPreferences
 import io.element.android.features.preferences.impl.userstatus.UserStatusState
 import io.element.android.features.preferences.impl.userstatus.UserStatusView
 import io.element.android.libraries.architecture.coverage.ExcludeFromCoverage
@@ -42,7 +41,6 @@ import io.element.android.libraries.designsystem.utils.CommonDrawables
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarHost
 import io.element.android.libraries.designsystem.utils.snackbar.rememberSnackbarHostState
 import io.element.android.libraries.matrix.api.core.DeviceId
-import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.libraries.matrix.ui.components.MatrixUserRow
 import io.element.android.libraries.ui.strings.CommonStrings
 
@@ -62,7 +60,6 @@ fun PreferencesRootView(
     onOpenAdvancedSettings: () -> Unit,
     onOpenLabs: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
-    onOpenUserProfile: (MatrixUser) -> Unit,
     onOpenBlockedUsers: () -> Unit,
     onSignOutClick: () -> Unit,
     onDeactivateClick: () -> Unit,
@@ -77,12 +74,6 @@ fun PreferencesRootView(
         title = stringResource(id = CommonStrings.common_settings),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
-        UserPreferences(
-            modifier = Modifier.clickable {
-                onOpenUserProfile(state.myUser)
-            },
-            matrixUser = state.myUser,
-        )
         if (state.isMultiAccountEnabled) {
             MultiAccountSection(
                 state = state,
@@ -382,7 +373,6 @@ private fun ContentToPreview(state: PreferencesRootState) {
         onLinkNewDeviceClick = {},
         onOpenNotificationSettings = {},
         onOpenLockScreenSettings = {},
-        onOpenUserProfile = {},
         onOpenBlockedUsers = {},
         onSignOutClick = {},
         onDeactivateClick = {},

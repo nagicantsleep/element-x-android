@@ -92,6 +92,14 @@ fun AdvancedSettingsView(
                 state.eventSink(AdvancedSettingsEvents.SetTheme(themeOption))
             }
         )
+        PreferenceDropdown(
+            title = stringResource(id = R.string.theme_brand_title),
+            selectedOption = state.brandTheme,
+            options = state.availableBrandThemeOptions,
+            onSelectOption = { brandThemeOption ->
+                state.eventSink(AdvancedSettingsEvents.SetBrandTheme(brandThemeOption))
+            }
+        )
         ListItem(
             headlineContent = {
                 Text(text = stringResource(id = CommonStrings.action_view_source))

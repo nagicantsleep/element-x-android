@@ -279,6 +279,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setRoomListView(
             homeState = aHomeState(roomListState = state),
             onRoomClick = onRoomClick,
             onSettingsClick = onSettingsClick,
+            onEditProfileClick = {},
             onSetUpRecoveryClick = onSetUpRecoveryClick,
             onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
             onStartChatClick = onCreateRoomClick,

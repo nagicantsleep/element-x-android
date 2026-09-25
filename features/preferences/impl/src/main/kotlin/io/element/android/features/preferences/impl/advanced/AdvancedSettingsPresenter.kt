@@ -18,6 +18,7 @@ import dev.zacsweers.metro.Inject
 import io.element.android.compound.theme.Theme
 import io.element.android.compound.theme.mapToTheme
 import io.element.android.libraries.architecture.Presenter
+import io.element.android.libraries.designsystem.theme.BrandTheme
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
@@ -27,6 +28,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @Inject
@@ -52,6 +54,9 @@ class AdvancedSettingsPresenter(
         val theme = remember(isBlackThemeAllowed) {
             appPreferencesStore.getThemeFlow().mapToTheme(isBlackThemeAllowed)
         }.collectAsState(initial = Theme.System)
+        val brandTheme = remember {
+            appPreferencesStore.getBrandThemeFlow().map { BrandTheme.fromStorage(it) }
+        }.collectAsState(initial = BrandTheme.Default)
 
         val liveLocationMinimumDistanceUpdate by produceState<Int?>(null) {
             appPreferencesStore.getLiveLocationMinimumDistanceInMetersUpdateFlow().collect { value = it }
@@ -68,6 +73,20 @@ class AdvancedSettingsPresenter(
                     Theme.Light -> ThemeOption.Light
                 }
             }
+        }
+
+        val brandThemeOption by remember {
+            derivedStateOf {
+                when (brandTheme.value) {
+                    BrandTheme.Default -> BrandThemeOption.Default
+                    BrandTheme.Z -> BrandThemeOption.Z
+                    BrandTheme.L -> BrandThemeOption.L
+                }
+            }
+        }
+
+        val availableBrandThemeOptions = remember {
+            BrandThemeOption.entries.toImmutableList()
         }
 
         val hasSplitMediaQualityOptions by produceState<Boolean?>(null) {
@@ -119,6 +138,15 @@ class AdvancedSettingsPresenter(
                         ThemeOption.Light -> appPreferencesStore.setTheme(Theme.Light.name)
                     }
                 }
+                is AdvancedSettingsEvents.SetBrandTheme -> sessionCoroutineScope.launch {
+                    appPreferencesStore.setBrandTheme(
+                        when (event.brandTheme) {
+                            BrandThemeOption.Default -> BrandTheme.Default.storageValue
+                            BrandThemeOption.Z -> BrandTheme.Z.storageValue
+                            BrandThemeOption.L -> BrandTheme.L.storageValue
+                        }
+                    )
+                }
                 is AdvancedSettingsEvents.SetHideInviteAvatars -> mediaPreviewConfigStateStore.setHideInviteAvatars(event.value)
                 is AdvancedSettingsEvents.SetTimelineMediaPreviewValue -> mediaPreviewConfigStateStore.setTimelineMediaPreviewValue(event.value)
                 is AdvancedSettingsEvents.SetLiveLocationMinimumDistanceUpdate -> sessionCoroutineScope.launch {
@@ -139,6 +167,8 @@ class AdvancedSettingsPresenter(
             mediaOptimizationState = mediaOptimizationState,
             theme = themeOption,
             availableThemeOptions = availableThemeOptions,
+            brandTheme = brandThemeOption,
+            availableBrandThemeOptions = availableBrandThemeOptions,
             mediaPreviewConfigState = mediaPreviewConfigState,
             liveLocationMinimumDistanceUpdate = liveLocationMinimumDistanceUpdate,
             eventSink = ::handleEvent,

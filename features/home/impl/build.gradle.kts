@@ -62,6 +62,10 @@ dependencies {
     implementation(projects.features.rolesandpermissions.api)
     implementation(projects.libraries.previewutils)
     api(projects.features.home.api)
+    // Z/L layout: the Contacts tab reuses the startchat user list.
+    implementation(projects.features.startchat.impl)
+    implementation(projects.features.startchat.api)
+    implementation(projects.libraries.usersearch.api)
 
     testCommonDependencies(libs, true)
     testImplementation(projects.features.announcement.test)
@@ -80,4 +84,7 @@ dependencies {
     testImplementation(projects.libraries.push.test)
     testImplementation(projects.services.analytics.test)
     testImplementation(projects.services.toolbox.test)
+    // Z/L layout: Contacts tab test fixtures.
+    testImplementation(projects.features.startchat.test)
+    testImplementation(projects.libraries.usersearch.test)
 }

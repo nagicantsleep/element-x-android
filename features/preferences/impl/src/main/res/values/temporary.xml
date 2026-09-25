@@ -15,4 +15,8 @@
     <string name="common_user_status_custom">Custom…</string>
     <string name="screen_preferences_user_status_placeholder">What\'s your status?</string>
     <string name="screen_preferences_user_status_custom_hint">Custom status…</string>
+    <string name="theme_brand_title">Brand theme</string>
+    <string name="theme_brand_default">Default</string>
+    <string name="theme_brand_z">Z theme</string>
+    <string name="theme_brand_l">L theme</string>
 </resources>

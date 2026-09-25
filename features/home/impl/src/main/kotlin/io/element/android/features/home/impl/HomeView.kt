@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -35,14 +33,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import io.element.android.compound.theme.ElementTheme
-import io.element.android.compound.tokens.generated.CompoundIcons
+import io.element.android.features.home.impl.components.HomeNavigationBar
 import io.element.android.features.home.impl.components.HomeTopBar
 import io.element.android.features.home.impl.components.RoomListContentView
 import io.element.android.features.home.impl.components.RoomListMenuAction
@@ -55,15 +52,16 @@ import io.element.android.features.home.impl.search.RoomListSearchView
 import io.element.android.features.home.impl.spacefilters.SpaceFiltersEvent
 import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
 import io.element.android.features.home.impl.spacefilters.SpaceFiltersView
+import io.element.android.features.home.impl.profile.HomeProfileView
 import io.element.android.features.home.impl.spaces.HomeSpacesView
+import io.element.android.features.startchat.api.ConfirmingStartDmWithMatrixUser
+import io.element.android.features.startchat.impl.components.UserListView
 import io.element.android.libraries.androidutils.throttler.FirstThrottler
+import io.element.android.libraries.designsystem.components.async.AsyncActionView
+import io.element.android.libraries.designsystem.components.async.AsyncActionViewDefaults
+import io.element.android.libraries.matrix.ui.components.CreateDmConfirmationBottomSheet
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
-import io.element.android.libraries.designsystem.theme.components.FloatingActionButton
-import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbar
-import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarItem
-import io.element.android.libraries.designsystem.theme.components.HorizontalFloatingToolbarSeparator
-import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.Scaffold
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarHost
 import io.element.android.libraries.designsystem.utils.snackbar.rememberSnackbarHostState
@@ -76,6 +74,7 @@ fun HomeView(
     homeState: HomeState,
     onRoomClick: (RoomId) -> Unit,
     onSettingsClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onSetUpRecoveryClick: () -> Unit,
     onConfirmRecoveryKeyClick: () -> Unit,
     onStartChatClick: () -> Unit,
@@ -118,6 +117,7 @@ fun HomeView(
             onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
             onRoomClick = { if (firstThrottler.canHandle()) onRoomClick(it) },
             onOpenSettings = { if (firstThrottler.canHandle()) onSettingsClick() },
+            onOpenEditProfile = { if (firstThrottler.canHandle()) onEditProfileClick() },
             onStartChatClick = { if (firstThrottler.canHandle()) onStartChatClick() },
             onCreateSpaceClick = { if (firstThrottler.canHandle()) onCreateSpaceClick() },
             onMenuActionClick = onMenuActionClick,
@@ -144,6 +144,7 @@ private fun HomeScaffold(
     onConfirmRecoveryKeyClick: () -> Unit,
     onRoomClick: (RoomId) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenEditProfile: () -> Unit,
     onStartChatClick: () -> Unit,
     onCreateSpaceClick: () -> Unit,
     onMenuActionClick: (RoomListMenuAction) -> Unit,
@@ -159,8 +160,8 @@ private fun HomeScaffold(
     val roomListState: RoomListState = state.roomListState
 
     BackHandler(enabled = state.isBackHandlerEnabled) {
-        if (state.currentHomeNavigationBarItem != HomeNavigationBarItem.Chats) {
-            state.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.Chats))
+        if (state.currentHomeNavigationBarItem != HomeNavigationBarItem.Messages) {
+            state.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.Messages))
         } else {
             val spaceFiltersState = state.roomListState.spaceFiltersState
             if (spaceFiltersState is SpaceFiltersState.Selected) {
@@ -172,6 +173,7 @@ private fun HomeScaffold(
     val hazeState = rememberHazeState()
     val roomsLazyListState = rememberLazyListState()
     val spacesLazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -187,6 +189,7 @@ private fun HomeScaffold(
                 onAccountSwitch = {
                     state.eventSink(HomeEvent.SwitchToAccount(it))
                 },
+                onStartChatClick = onStartChatClick,
                 scrollBehavior = scrollBehavior,
                 displayFilters = state.displayRoomListFilters,
                 filtersState = roomListState.filtersState,
@@ -198,16 +201,17 @@ private fun HomeScaffold(
                 )
             )
         },
-        floatingActionButton = {
-            val coroutineScope = rememberCoroutineScope()
-            HomeBottomBar(
-                currentHomeNavigationBarItem = state.currentHomeNavigationBarItem,
+        bottomBar = {
+            HomeNavigationBar(
+                selectedItem = state.currentHomeNavigationBarItem,
+                messagesBadgeCount = state.messagesBadgeCount,
+                contactsBadgeCount = state.contactsBadgeCount,
                 onItemClick = { item ->
-                    // scroll to top if selecting the same item
+                    // Scroll to top if selecting the same item
                     if (item == state.currentHomeNavigationBarItem) {
                         val lazyListStateTarget = when (item) {
-                            HomeNavigationBarItem.Chats -> roomsLazyListState
-                            HomeNavigationBarItem.Spaces -> spacesLazyListState
+                            HomeNavigationBarItem.Messages -> roomsLazyListState
+                            else -> spacesLazyListState
                         }
                         coroutineScope.launch {
                             if (lazyListStateTarget.firstVisibleItemIndex > 10) {
@@ -221,25 +225,16 @@ private fun HomeScaffold(
                         state.eventSink(HomeEvent.SelectHomeNavigationBarItem(item))
                     }
                 },
-                floatingActionButton = {
-                    when (state.currentHomeNavigationBarItem) {
-                        HomeNavigationBarItem.Chats -> {
-                            HomeFloatingActionButton(onStartChatClick, CommonStrings.action_create_room)
-                        }
-                        HomeNavigationBarItem.Spaces -> {
-                            HomeFloatingActionButton(onCreateSpaceClick, CommonStrings.action_create_space)
-                        }
-                    }
-                },
+                modifier = Modifier.hazeEffect(state = hazeState, style = HazeMaterials.thick()),
             )
         },
-        floatingActionButtonPosition = FabPosition.Center,
         content = { padding ->
+            // The bottom bar is part of the Scaffold, so it already contributes its own inset to `padding`.
             val contentPadding = PaddingValues(
-                bottom = 96.dp,
+                bottom = 0.dp,
             )
             when (state.currentHomeNavigationBarItem) {
-                HomeNavigationBarItem.Chats -> {
+                HomeNavigationBarItem.Messages -> {
                     RoomListContentView(
                         contentState = roomListState.contentState,
                         filtersState = roomListState.filtersState,
@@ -267,7 +262,49 @@ private fun HomeScaffold(
                     )
                     SpaceFiltersView(roomListState.spaceFiltersState)
                 }
-                HomeNavigationBarItem.Spaces -> {
+                HomeNavigationBarItem.Contacts -> {
+                    UserListView(
+                        state = state.contactsUserListState,
+                        onSelectUser = { state.eventSink(HomeEvent.StartChatWithUser(it)) },
+                        onDeselectUser = { state.eventSink(HomeEvent.CancelStartChat) },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                            .consumeWindowInsets(padding)
+                            .hazeSource(state = hazeState),
+                        showBackButton = false,
+                    )
+                    AsyncActionView(
+                        async = state.contactsStartDmAction,
+                        progressDialog = {
+                            AsyncActionViewDefaults.ProgressDialog(
+                                progressText = stringResource(CommonStrings.common_starting_chat),
+                            )
+                        },
+                        onSuccess = {
+                            state.eventSink(HomeEvent.CancelStartChat)
+                            onRoomClick(it)
+                        },
+                        errorMessage = { it.message ?: it.toString() },
+                        onRetry = {
+                            state.contactsUserListState.selectedUsers.firstOrNull()
+                                ?.let { state.eventSink(HomeEvent.StartChatWithUser(it)) }
+                                ?: state.eventSink(HomeEvent.CancelStartChat)
+                        },
+                        onErrorDismiss = { state.eventSink(HomeEvent.CancelStartChat) },
+                        confirmationDialog = { data ->
+                            if (data is ConfirmingStartDmWithMatrixUser) {
+                                CreateDmConfirmationBottomSheet(
+                                    matrixUser = data.matrixUser,
+                                    isUserIdentityUnknown = data.isUserIdentityUnknown,
+                                    onSendInvite = { state.eventSink(HomeEvent.StartChatWithUser(data.matrixUser)) },
+                                    onDismiss = { state.eventSink(HomeEvent.CancelStartChat) },
+                                )
+                            }
+                        },
+                    )
+                }
+                HomeNavigationBarItem.Discover -> {
                     HomeSpacesView(
                         modifier = Modifier
                             .fillMaxSize()
@@ -285,52 +322,22 @@ private fun HomeScaffold(
                         onExploreClick = {},
                     )
                 }
+                HomeNavigationBarItem.Profile -> {
+                    HomeProfileView(
+                        currentUser = state.currentUser,
+                        onEditProfileClick = onOpenEditProfile,
+                        onSettingsClick = onOpenSettings,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                            .consumeWindowInsets(padding)
+                            .hazeSource(state = hazeState),
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     )
-}
-
-@Composable
-private fun HomeFloatingActionButton(
-    onClick: () -> Unit,
-    contentDescription: Int,
-    modifier: Modifier = Modifier,
-) {
-    FloatingActionButton(onClick = onClick, modifier = modifier) {
-        Icon(
-            imageVector = CompoundIcons.Plus(),
-            contentDescription = stringResource(id = contentDescription),
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun HomeBottomBar(
-    currentHomeNavigationBarItem: HomeNavigationBarItem,
-    onItemClick: (HomeNavigationBarItem) -> Unit,
-    modifier: Modifier = Modifier,
-    floatingActionButton: (@Composable () -> Unit)?,
-) {
-    HorizontalFloatingToolbar(
-        floatingActionButton = floatingActionButton,
-        modifier = modifier
-            .zIndex(1f),
-    ) {
-        HomeNavigationBarItem.entries.forEachIndexed { index, item ->
-            if (index > 0) {
-                HorizontalFloatingToolbarSeparator()
-            }
-            val isSelected = currentHomeNavigationBarItem == item
-            HorizontalFloatingToolbarItem(
-                icon = item.icon(isSelected),
-                tooltipLabel = stringResource(item.labelRes),
-                isSelected = isSelected,
-                onClick = { onItemClick(item) },
-            )
-        }
-    }
 }
 
 internal fun RoomListRoomSummary.contentType() = displayType.ordinal
@@ -342,6 +349,7 @@ internal fun HomeViewPreview(@PreviewParameter(HomeStateProvider::class) state: 
         homeState = state,
         onRoomClick = {},
         onSettingsClick = {},
+        onEditProfileClick = {},
         onSetUpRecoveryClick = {},
         onConfirmRecoveryKeyClick = {},
         onStartChatClick = {},
@@ -362,6 +370,7 @@ internal fun HomeViewA11yPreview() = ElementPreview {
         homeState = aHomeState(),
         onRoomClick = {},
         onSettingsClick = {},
+        onEditProfileClick = {},
         onSetUpRecoveryClick = {},
         onConfirmRecoveryKeyClick = {},
         onStartChatClick = {},
