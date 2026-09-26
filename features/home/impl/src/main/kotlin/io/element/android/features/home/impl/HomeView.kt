@@ -14,11 +14,15 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,6 +52,8 @@ import io.element.android.features.home.impl.roomlist.RoomListContextMenu
 import io.element.android.features.home.impl.roomlist.RoomListDeclineInviteMenu
 import io.element.android.features.home.impl.roomlist.RoomListEvent
 import io.element.android.features.home.impl.roomlist.RoomListState
+import io.element.android.features.home.impl.search.GlobalSearchEvent
+import io.element.android.features.home.impl.search.GlobalSearchView
 import io.element.android.features.home.impl.search.RoomListSearchView
 import io.element.android.features.home.impl.spacefilters.SpaceFiltersEvent
 import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
@@ -63,8 +69,11 @@ import io.element.android.libraries.matrix.ui.components.CreateDmConfirmationBot
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Scaffold
+import io.element.android.libraries.designsystem.utils.lazyColumnContentPadding
+import io.element.android.libraries.designsystem.utils.scaffoldScrollableContentInsets
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarHost
 import io.element.android.libraries.designsystem.utils.snackbar.rememberSnackbarHostState
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.ui.strings.CommonStrings
 import kotlinx.coroutines.launch
@@ -72,7 +81,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeView(
     homeState: HomeState,
-    onRoomClick: (RoomId) -> Unit,
+    onRoomClick: (RoomId, EventId?) -> Unit,
     onSettingsClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onSetUpRecoveryClick: () -> Unit,
@@ -115,23 +124,35 @@ fun HomeView(
             state = homeState,
             onSetUpRecoveryClick = onSetUpRecoveryClick,
             onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
-            onRoomClick = { if (firstThrottler.canHandle()) onRoomClick(it) },
+            onRoomClick = { roomId -> if (firstThrottler.canHandle()) onRoomClick(roomId, null) },
             onOpenSettings = { if (firstThrottler.canHandle()) onSettingsClick() },
             onOpenEditProfile = { if (firstThrottler.canHandle()) onEditProfileClick() },
             onStartChatClick = { if (firstThrottler.canHandle()) onStartChatClick() },
             onCreateSpaceClick = { if (firstThrottler.canHandle()) onCreateSpaceClick() },
             onMenuActionClick = onMenuActionClick,
         )
-        // This overlaid view will only be visible when state.displaySearchResults is true
-        RoomListSearchView(
-            state = state.searchState,
-            eventSink = state.eventSink,
-            hideInvitesAvatars = state.hideInvitesAvatars,
-            onRoomClick = { if (firstThrottler.canHandle()) onRoomClick(it) },
-            modifier = Modifier
-                .fillMaxSize()
-                .background(ElementTheme.colors.bgCanvasDefault)
-        )
+
+        if (state.globalSearchState.isEnabled) {
+            GlobalSearchView(
+                state = state.globalSearchState,
+                onSelectSearchResult = { roomId, eventId -> if (firstThrottler.canHandle()) onRoomClick(roomId, eventId) },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(ElementTheme.colors.bgCanvasDefault),
+            )
+        } else {
+            // This overlaid view will only be visible when state.displaySearchResults is true
+            RoomListSearchView(
+                state = state.searchState,
+                eventSink = state.eventSink,
+                hideInvitesAvatars = state.hideInvitesAvatars,
+                onRoomClick = { roomId -> if (firstThrottler.canHandle()) onRoomClick(roomId, null) },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(ElementTheme.colors.bgCanvasDefault)
+            )
+        }
+
         acceptDeclineInviteView()
     }
 }
@@ -182,8 +203,18 @@ private fun HomeScaffold(
                 selectedNavigationItem = state.currentHomeNavigationBarItem,
                 currentUserAndNeighbors = state.currentUserAndNeighbors,
                 showAvatarIndicator = state.showAvatarIndicator,
-                areSearchResultsDisplayed = roomListState.searchState.isSearchActive,
-                onToggleSearch = { roomListState.eventSink(RoomListEvent.ToggleSearchResults) },
+                areSearchResultsDisplayed = if (roomListState.globalSearchState.isEnabled) {
+                    roomListState.globalSearchState.isSearchActive
+                } else {
+                    roomListState.searchState.isSearchActive
+                },
+                onToggleSearch = {
+                    if (roomListState.globalSearchState.isEnabled) {
+                        roomListState.globalSearchState.eventSink(GlobalSearchEvent.ToggleSearchVisibility)
+                    } else {
+                        roomListState.eventSink(RoomListEvent.ToggleSearchResults)
+                    }
+                },
                 onMenuActionClick = onMenuActionClick,
                 onOpenSettings = onOpenSettings,
                 onAccountSwitch = {
@@ -228,7 +259,15 @@ private fun HomeScaffold(
                 modifier = Modifier.hazeEffect(state = hazeState, style = HazeMaterials.thick()),
             )
         },
+        contentWindowInsets = scaffoldScrollableContentInsets,
         content = { padding ->
+            val outerPadding = PaddingValues(
+                start = padding.calculateStartPadding(LocalLayoutDirection.current),
+                end = padding.calculateEndPadding(LocalLayoutDirection.current),
+                // Remove these two lines once https://issuetracker.google.com/issues/436432313 has been fixed
+                bottom = padding.calculateBottomPadding(),
+                top = padding.calculateTopPadding()
+            )
             // The bottom bar is part of the Scaffold, so it already contributes its own inset to `padding`.
             val contentPadding = PaddingValues(
                 bottom = 0.dp,
@@ -246,18 +285,10 @@ private fun HomeScaffold(
                         onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
                         onRoomClick = ::onRoomClick,
                         onCreateRoomClick = onStartChatClick,
-                        contentPadding = contentPadding,
+                        contentPadding = lazyColumnContentPadding + contentPadding,
                         modifier = Modifier
-                            .padding(
-                                PaddingValues(
-                                    start = padding.calculateStartPadding(LocalLayoutDirection.current),
-                                    end = padding.calculateEndPadding(LocalLayoutDirection.current),
-                                    // Remove these two lines once https://issuetracker.google.com/issues/436432313 has been fixed
-                                    bottom = padding.calculateBottomPadding(),
-                                    top = padding.calculateTopPadding()
-                                )
-                            )
-                            .consumeWindowInsets(padding)
+                            .padding(outerPadding)
+                            .consumeWindowInsets(outerPadding)
                             .hazeSource(state = hazeState)
                     )
                     SpaceFiltersView(roomListState.spaceFiltersState)
@@ -308,10 +339,10 @@ private fun HomeScaffold(
                     HomeSpacesView(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(padding)
-                            .consumeWindowInsets(padding)
+                            .padding(outerPadding)
+                            .consumeWindowInsets(outerPadding)
                             .hazeSource(state = hazeState),
-                        contentPadding = contentPadding,
+                        contentPadding = lazyColumnContentPadding + contentPadding,
                         state = state.homeSpacesState,
                         lazyListState = spacesLazyListState,
                         onSpaceClick = { spaceId ->
@@ -344,10 +375,10 @@ internal fun RoomListRoomSummary.contentType() = displayType.ordinal
 
 @PreviewsDayNight
 @Composable
-internal fun HomeViewPreview(@PreviewParameter(HomeStateProvider::class) state: HomeState) = ElementPreview {
+internal fun HomeViewPreview(@PreviewParameter(HomeStatePreviewParam::class) state: HomeState) = ElementPreview {
     HomeView(
         homeState = state,
-        onRoomClick = {},
+        onRoomClick = { _, _ -> },
         onSettingsClick = {},
         onEditProfileClick = {},
         onSetUpRecoveryClick = {},
@@ -368,7 +399,7 @@ internal fun HomeViewPreview(@PreviewParameter(HomeStateProvider::class) state: 
 internal fun HomeViewA11yPreview() = ElementPreview {
     HomeView(
         homeState = aHomeState(),
-        onRoomClick = {},
+        onRoomClick = { _, _ -> },
         onSettingsClick = {},
         onEditProfileClick = {},
         onSetUpRecoveryClick = {},

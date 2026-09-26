@@ -53,6 +53,10 @@
   <string name="screen_edit_profile_error_title">"Nije moguće ažurirati profil"</string>
   <string name="screen_edit_profile_title">"Uredi profil"</string>
   <string name="screen_edit_profile_updating_details">"Ažuriranje profila…"</string>
+  <string name="screen_labs_enable_gallery">"Poruke iz galerije"</string>
+  <string name="screen_labs_enable_gallery_description">"Pošaljite više slika ili videozapisa odjednom. Stabilno na mobilnim uređajima, ali još nije podržano na webu."</string>
+  <string name="screen_labs_enable_knocking">"Zatraži pridruživanje"</string>
+  <string name="screen_labs_enable_knocking_description">"Korisnici mogu zatražiti pristup sobi kojoj se nitko ne može pridružiti. Stabilno na mobilnim uređajima, web implementacija postoji, ali je eksperimentalna."</string>
   <string name="screen_labs_enable_threads">"Omogući odgovore u nizu"</string>
   <string name="screen_labs_enable_threads_description">"Aplikacija će se ponovno pokrenuti kako bi se primijenila ova promjena."</string>
   <string name="screen_labs_header_description">"Isprobajte naše najnovije ideje u razvoju. Ove značajke nisu finalizirane; mogu biti nestabilne i mijenjati se."</string>
@@ -102,6 +106,14 @@ Ako nastavite, neke od vaših postavki mogu se promijeniti."</string>
   <string name="screen_notification_settings_system_notifications_action_required_content_link">"postavke sustava"</string>
   <string name="screen_notification_settings_system_notifications_turned_off">"Obavijesti sustava su isključene"</string>
   <string name="screen_notification_settings_title">"Obavijesti"</string>
+  <string name="screen_settings_user_status_away">"Odsutan/na"</string>
+  <string name="screen_settings_user_status_be_right_back">"Odmah se vraćam"</string>
+  <string name="screen_settings_user_status_custom">"Prilagođeno"</string>
+  <string name="screen_settings_user_status_custom_hint">"Prilagođeni status…"</string>
+  <string name="screen_settings_user_status_focus_time">"Vrijeme za fokusiranje"</string>
+  <string name="screen_settings_user_status_in_a_meeting">"Na sastanku"</string>
+  <string name="screen_settings_user_status_on_the_road">"Na putu"</string>
+  <string name="screen_settings_user_status_placeholder">"Kakav je tvoj status?"</string>
   <string name="theme_black">"Crna"</string>
   <string name="theme_dark">"Tamno"</string>
   <string name="theme_light">"Svijetlo"</string>

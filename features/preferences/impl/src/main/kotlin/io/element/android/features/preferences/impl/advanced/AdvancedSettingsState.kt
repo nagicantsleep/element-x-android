@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import io.element.android.features.preferences.impl.R
 import io.element.android.libraries.designsystem.components.preferences.DropdownOption
 import io.element.android.libraries.preferences.api.store.VideoCompressionPreset
+import io.element.android.libraries.ui.strings.CommonStrings
 import kotlinx.collections.immutable.ImmutableList
 
 data class AdvancedSettingsState(
@@ -26,7 +27,7 @@ data class AdvancedSettingsState(
     val availableBrandThemeOptions: ImmutableList<BrandThemeOption>,
     val mediaPreviewConfigState: MediaPreviewConfigState,
     val liveLocationMinimumDistanceUpdate: Int?,
-    val eventSink: (AdvancedSettingsEvents) -> Unit
+    val eventSink: (AdvancedSettingsEvent) -> Unit
 )
 
 sealed interface MediaOptimizationState {
@@ -72,18 +73,18 @@ enum class BrandThemeOption : DropdownOption {
     Default {
         @Composable
         @ReadOnlyComposable
-        override fun getText(): String = stringResource(R.string.theme_brand_default)
+        override fun getText(): String = stringResource(CommonStrings.theme_brand_default)
     },
 
     Z {
         @Composable
         @ReadOnlyComposable
-        override fun getText(): String = stringResource(R.string.theme_brand_z)
+        override fun getText(): String = stringResource(CommonStrings.theme_brand_z)
     },
 
     L {
         @Composable
         @ReadOnlyComposable
-        override fun getText(): String = stringResource(R.string.theme_brand_l)
+        override fun getText(): String = stringResource(CommonStrings.theme_brand_l)
     }
 }
