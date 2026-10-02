@@ -18,6 +18,10 @@
         <domain includeSubdomains="true">127.0.0.1</domain>
         <!-- Localhost for Android emulator -->
         <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Z/L product: local/dev deployments serve tenants over plain HTTP
+             behind Traefik on the *.chat.domain.com family (see compose.yaml).
+             Emulator + device debug builds must reach them. -->
+        <domain includeSubdomains="true">chat.domain.com</domain>
         <!-- Onion services -->
         <domain includeSubdomains="true">onion</domain>
 
