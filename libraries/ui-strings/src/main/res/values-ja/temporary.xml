@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 nagicantsleep
+  ~
+  ~ SPDX-License-Identifier: AGPL-3.0-only
+  -->
+
+<resources>
+    <!-- Product (Z/L) brand theme strings, maintained divergence; not Localazy-managed. -->
+    <string name="theme_brand_title">テーマ</string>
+    <string name="theme_brand_default">デフォルト</string>
+    <string name="theme_brand_z">Zテーマ</string>
+    <string name="theme_brand_l">Lテーマ</string>
+
+    <!-- Friends (Z/L feature), maintained divergence; not Localazy-managed. -->
+    <string name="screen_friends_title">フレンド</string>
+</resources>

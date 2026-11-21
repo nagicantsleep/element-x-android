@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 nagicantsleep
+  ~
+  ~ SPDX-License-Identifier: AGPL-3.0-only
+  -->
+
+<resources>
+  <string name="screen_friends_title">"フレンド"</string>
+  <string name="screen_friends_add_hint">"MatrixユーザーIDを入力（例 @alice:example.org）"</string>
+  <string name="screen_friends_add_friend">"フレンド追加"</string>
+  <string name="screen_friends_empty">"フレンドはまだいません"</string>
+  <string name="screen_friends_incoming_requests">"受信したフレンド申請"</string>
+  <string name="screen_friends_outgoing_requests">"送信したフレンド申請"</string>
+  <string name="screen_friends_cancel_request">"申請をキャンセル"</string>
+  <string name="screen_friends_remove_friend">"フレンド削除"</string>
+  <string name="screen_friends_my_qr_code">"マイQRコード"</string>
+  <string name="screen_friends_result_requested">"フレンド申請を送信しました"</string>
+  <string name="screen_friends_result_already_friends">"すでにフレンドです"</string>
+  <string name="screen_friends_result_accepted">"フレンド追加しました"</string>
+  <string name="screen_friends_request_failed">"フレンド申請を送信できませんでした"</string>
+  <string name="screen_friends_accept_failed">"フレンド申請を承認できませんでした"</string>
+  <string name="screen_friends_invalid_user_id">"MatrixユーザーIDが無効です"</string>
+</resources>

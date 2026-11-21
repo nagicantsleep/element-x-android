@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 nagicantsleep
+  ~
+  ~ SPDX-License-Identifier: AGPL-3.0-only
+  -->
+
+<resources>
+  <string name="screen_scheduling_send_later">"後で送信"</string>
+  <string name="screen_scheduling_option_in_1_hour">"1時間後"</string>
+  <string name="screen_scheduling_option_in_8_hours">"8時間後"</string>
+  <string name="screen_scheduling_option_in_24_hours">"24時間後"</string>
+  <string name="screen_scheduling_option_custom">"時刻を選択…"</string>
+  <string name="screen_scheduling_scheduled_for">"%1$sに送信予定"</string>
+  <string name="screen_scheduling_list_title">"予定メッセージ"</string>
+  <string name="screen_scheduling_action_send_now">"今すぐ送信"</string>
+  <string name="screen_scheduling_action_cancel">"キャンセル"</string>
+  <string name="screen_scheduling_empty">"この部屋に予定メッセージはありません"</string>
+  <string name="screen_scheduling_error_schedule_failed">"メッセージを予約できませんでした"</string>
+  <string name="screen_scheduling_error_send_now_failed">"予定メッセージを送信できませんでした"</string>
+  <string name="screen_scheduling_error_cancel_failed">"予定メッセージをキャンセルできませんでした"</string>
+  <string name="screen_scheduling_a11y_send_later_options">"送信予約の選択肢"</string>
+  <string name="screen_scheduling_a11y_remove_scheduled">"予定メッセージを削除"</string>
+  <string name="screen_scheduling_custom_time_confirm">"OK"</string>
+  <string name="screen_scheduling_custom_time_cancel">"キャンセル"</string>
+</resources>
