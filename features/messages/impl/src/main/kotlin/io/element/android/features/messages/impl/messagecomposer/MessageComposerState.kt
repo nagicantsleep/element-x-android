@@ -9,6 +9,7 @@
 package io.element.android.features.messages.impl.messagecomposer
 
 import androidx.compose.runtime.Stable
+import io.element.android.features.scheduling.impl.SchedulingComposerState
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion
 import io.element.android.libraries.textcomposer.model.MessageComposerMode
@@ -29,5 +30,6 @@ data class MessageComposerState(
     val resolveMentionDisplay: (String, String) -> TextDisplay,
     val resolveAtRoomMentionDisplay: () -> TextDisplay,
     val slashCommandAction: AsyncAction<Unit>,
+    val schedulingState: SchedulingComposerState = SchedulingComposerState(),
     val eventSink: (MessageComposerEvent) -> Unit,
 )

@@ -13,7 +13,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -22,6 +26,9 @@ import io.element.android.features.messages.api.timeline.voicemessages.composer.
 import io.element.android.features.messages.api.timeline.voicemessages.composer.VoiceMessageComposerState
 import io.element.android.features.messages.api.timeline.voicemessages.composer.VoiceMessageComposerStatePreviewParam
 import io.element.android.features.messages.api.timeline.voicemessages.composer.aVoiceMessageComposerState
+import io.element.android.features.scheduling.impl.ScheduleComposerButton
+import io.element.android.features.scheduling.impl.ScheduledMessagesSheet
+import io.element.android.features.scheduling.impl.SendLaterMenu
 import io.element.android.libraries.designsystem.components.async.AsyncActionView
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
@@ -75,6 +82,40 @@ internal fun MessageComposerView(
     fun onRequestFocus() {
         coroutineScope.launch {
             state.textEditorState.requestFocus()
+        }
+    }
+
+    // "Send later" (MSC4140): clock affordance + preset menu + per-room scheduled list,
+    // all gated on the server advertising the unstable feature.
+    var showScheduleMenu by remember { mutableStateOf(false) }
+    val schedulingState = state.schedulingState
+    if (schedulingState.isSupported) {
+        ScheduleComposerButton(
+            pendingSendAt = schedulingState.pendingSendAt,
+            onOpenMenu = { showScheduleMenu = true },
+            onClearSchedule = { state.eventSink(MessageComposerEvent.ScheduleAt(null)) },
+        )
+        if (showScheduleMenu) {
+            SendLaterMenu(
+                scheduledCount = schedulingState.scheduledMessages.size,
+                onScheduleAt = { sendAt ->
+                    showScheduleMenu = false
+                    state.eventSink(MessageComposerEvent.ScheduleAt(sendAt))
+                },
+                onShowScheduledList = {
+                    showScheduleMenu = false
+                    state.eventSink(MessageComposerEvent.ShowScheduledList)
+                },
+                onDismiss = { showScheduleMenu = false },
+            )
+        }
+        if (schedulingState.showScheduledList) {
+            ScheduledMessagesSheet(
+                scheduledMessages = schedulingState.scheduledMessages,
+                onSendNow = { state.eventSink(MessageComposerEvent.SendScheduledNow(it)) },
+                onCancel = { state.eventSink(MessageComposerEvent.CancelScheduled(it)) },
+                onDismiss = { state.eventSink(MessageComposerEvent.DismissScheduledList) },
+            )
         }
     }
 

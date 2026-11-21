@@ -41,6 +41,9 @@ import io.element.android.features.messages.impl.messagecomposer.suggestions.Roo
 import io.element.android.features.messages.impl.messagecomposer.suggestions.SuggestionsProcessor
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.features.messages.impl.utils.TextPillificationHelper
+import io.element.android.features.scheduling.impl.SchedulingComposerState
+import io.element.android.features.scheduling.impl.scheduledMessageContent
+import io.element.android.features.scheduling.impl.data.SchedulingService
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.core.extensions.runCatchingExceptions
@@ -80,6 +83,7 @@ import io.element.android.libraries.push.api.notifications.conversations.Notific
 import io.element.android.libraries.slashcommands.api.SlashCommand
 import io.element.android.libraries.slashcommands.api.SlashCommandService
 import io.element.android.libraries.slashcommands.api.message
+import io.element.android.features.scheduling.impl.R as SchedulingR
 import io.element.android.libraries.textcomposer.mentions.MentionSpanProvider
 import io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion
 import io.element.android.libraries.textcomposer.model.MarkdownTextEditorState
@@ -145,6 +149,7 @@ class MessageComposerPresenter(
     private val featureFlagService: FeatureFlagService,
     private val contentScannerService: ContentScannerService,
     private val contentValidationCache: EventContentValidationCache,
+    private val schedulingService: SchedulingService,
 ) : Presenter<MessageComposerState> {
     @AssistedFactory
     interface Factory {
@@ -169,6 +174,13 @@ class MessageComposerPresenter(
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal var showTextFormatting: Boolean by mutableStateOf(false)
 
+    // "Send later": epoch ms for the next message, or null when no schedule is armed.
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal var pendingScheduleAt: Long? by mutableStateOf(null)
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal var showScheduledList: Boolean by mutableStateOf(false)
+
     @SuppressLint("UnsafeOptInUsageError")
     @Composable
     override fun present(): MessageComposerState {
@@ -191,6 +203,13 @@ class MessageComposerPresenter(
 
         val isSendGalleryMessagesEnabled by featureFlagService.isFeatureEnabledFlow(FeatureFlags.SendGalleryMessages)
             .collectAsState(initial = false)
+
+        val schedulingUiState by schedulingService.state.collectAsState()
+        LaunchedEffect(room.roomId) {
+            // GET /versions is queried at most once per session; per-room listing refreshes here.
+            schedulingService.refreshSupport()
+            schedulingService.observeRoom(room.roomId)
+        }
 
         val galleryMediaPicker = mediaPickerProvider.registerGalleryPicker { uri, mimeType ->
             handlePickedMedia(uri, mimeType)
@@ -403,6 +422,29 @@ class MessageComposerPresenter(
                 MessageComposerEvent.ClearSlashError -> {
                     slashCommandAction.value = AsyncAction.Uninitialized
                 }
+                is MessageComposerEvent.ScheduleAt -> {
+                    showScheduledList = false
+                    pendingScheduleAt = event.sendAt
+                }
+                MessageComposerEvent.ShowScheduledList -> {
+                    sessionCoroutineScope.launch { schedulingService.observeRoom(room.roomId) }
+                    showScheduledList = true
+                }
+                MessageComposerEvent.DismissScheduledList -> showScheduledList = false
+                is MessageComposerEvent.SendScheduledNow -> sessionCoroutineScope.launch {
+                    schedulingService.sendNow(event.delayId)
+                        .onFailure {
+                            Timber.e(it, "Failed to send the scheduled message now")
+                            snackbarDispatcher.post(SnackbarMessage(SchedulingR.string.screen_scheduling_error_send_now_failed))
+                        }
+                }
+                is MessageComposerEvent.CancelScheduled -> sessionCoroutineScope.launch {
+                    schedulingService.cancel(event.delayId)
+                        .onFailure {
+                            Timber.e(it, "Failed to cancel the scheduled message")
+                            snackbarDispatcher.post(SnackbarMessage(SchedulingR.string.screen_scheduling_error_cancel_failed))
+                        }
+                }
             }
         }
 
@@ -436,6 +478,12 @@ class MessageComposerPresenter(
             resolveMentionDisplay = resolveMentionDisplay,
             resolveAtRoomMentionDisplay = resolveAtRoomMentionDisplay,
             slashCommandAction = slashCommandAction.value,
+            schedulingState = SchedulingComposerState(
+                isSupported = schedulingUiState.isSupported,
+                pendingSendAt = pendingScheduleAt,
+                scheduledMessages = schedulingUiState.scheduled.toImmutableList(),
+                showScheduledList = showScheduledList,
+            ),
             eventSink = ::handleEvent,
         )
     }
@@ -556,6 +604,18 @@ class MessageComposerPresenter(
             }
         }
 
+        // "Send later": intercept plain-text sends when a schedule is armed and route them
+        // through the MSC4140 delayed-events REST path instead of the timeline.
+        val pendingSendAt = pendingScheduleAt
+        pendingScheduleAt = null
+        if (pendingSendAt != null &&
+            capturedMode is MessageComposerMode.Normal &&
+            message.markdown.isNotBlank()
+        ) {
+            scheduleMessage(pendingSendAt, message, markdownTextEditorState, richTextEditorState)
+            return@launch
+        }
+
         // Reset composer right away
         resetComposer(markdownTextEditorState, richTextEditorState, fromEdit = capturedMode is MessageComposerMode.Edit)
         when (capturedMode) {
@@ -622,6 +682,45 @@ class MessageComposerPresenter(
                 // Set proper type when we'll be sending other types of messages.
                 messageType = Composer.MessageType.Text,
             )
+        )
+    }
+
+    /**
+     * PUT the message as an MSC4140 delayed event, persist the returned record, and only then
+     * clear the composer so a failed call does not lose the typed text.
+     */
+    private fun CoroutineScope.scheduleMessage(
+        sendAt: Long,
+        message: Message,
+        markdownTextEditorState: MarkdownTextEditorState,
+        richTextEditorState: RichTextEditorState,
+    ) = launch {
+        val content = scheduledMessageContent(
+            body = message.markdown,
+            htmlBody = message.html,
+            intentionalMentions = message.intentionalMentions,
+        )
+        schedulingService.schedule(
+            roomId = room.roomId,
+            eventType = "m.room.message",
+            content = content,
+            sendAt = sendAt,
+        ).fold(
+            onSuccess = {
+                resetComposer(markdownTextEditorState, richTextEditorState, fromEdit = false)
+                analyticsService.capture(
+                    Composer(
+                        inThread = false,
+                        isEditing = false,
+                        isReply = false,
+                        messageType = Composer.MessageType.Text,
+                    )
+                )
+            },
+            onFailure = { cause ->
+                Timber.e(cause, "Failed to schedule the message")
+                snackbarDispatcher.post(SnackbarMessage(SchedulingR.string.screen_scheduling_error_schedule_failed))
+            },
         )
     }
 

@@ -31,6 +31,12 @@ import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.features.messages.impl.utils.FakeMentionSpanFormatter
 import io.element.android.features.messages.impl.utils.FakeTextPillificationHelper
 import io.element.android.features.messages.impl.utils.TextPillificationHelper
+import io.element.android.features.scheduling.impl.data.SchedulingService
+import io.element.android.features.scheduling.impl.data.SchedulingUiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.json.JsonObject
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.core.mimetype.MimeTypes
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
@@ -1677,6 +1683,7 @@ class MessageComposerPresenterTest : RobolectricTest() {
         threadRoot: ThreadId? = null,
         slashCommandService: SlashCommandService = FakeSlashCommandService(),
         featureFlagService: FakeFeatureFlagService = FakeFeatureFlagService(),
+        schedulingService: SchedulingService = FakeSchedulingService(),
     ) = MessageComposerPresenter(
         navigator = navigator,
         sessionCoroutineScope = this,
@@ -1716,6 +1723,7 @@ class MessageComposerPresenterTest : RobolectricTest() {
         notificationConversationService = notificationConversationService,
         slashCommandService = slashCommandService,
         featureFlagService = featureFlagService,
+        schedulingService = schedulingService,
         contentScannerService = { _, _ -> },
         contentValidationCache = InMemoryEventContentValidationCache(),
     ).apply {
@@ -1727,6 +1735,16 @@ class MessageComposerPresenterTest : RobolectricTest() {
         skipItems(1)
         return awaitItem()
     }
+}
+
+class FakeSchedulingService : SchedulingService {
+    private val _state = MutableStateFlow(SchedulingUiState(isSupported = true))
+    override val state: StateFlow<SchedulingUiState> = _state.asStateFlow()
+    override suspend fun refreshSupport() = Unit
+    override suspend fun schedule(roomId: RoomId, eventType: String, content: JsonObject, sendAt: Long): Result<Unit> = Result.success(Unit)
+    override suspend fun sendNow(delayId: String): Result<Unit> = Result.success(Unit)
+    override suspend fun cancel(delayId: String): Result<Unit> = Result.success(Unit)
+    override suspend fun observeRoom(roomId: RoomId) = Unit
 }
 
 fun anEditMode(

@@ -9,6 +9,7 @@
 package io.element.android.features.messages.impl.messagecomposer
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import io.element.android.features.scheduling.impl.SchedulingComposerState
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion
 import io.element.android.libraries.textcomposer.model.MessageComposerMode
@@ -35,6 +36,7 @@ fun aMessageComposerState(
     canShareLocation: Boolean = true,
     suggestions: ImmutableList<ResolvedSuggestion> = persistentListOf(),
     slashCommandAction: AsyncAction<Unit> = AsyncAction.Uninitialized,
+    schedulingState: SchedulingComposerState = SchedulingComposerState(),
     eventSink: (MessageComposerEvent) -> Unit = {},
 ) = MessageComposerState(
     textEditorState = textEditorState,
@@ -48,5 +50,6 @@ fun aMessageComposerState(
     resolveMentionDisplay = { _, _ -> TextDisplay.Plain },
     resolveAtRoomMentionDisplay = { TextDisplay.Plain },
     slashCommandAction = slashCommandAction,
+    schedulingState = schedulingState,
     eventSink = eventSink,
 )

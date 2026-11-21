@@ -37,4 +37,15 @@ sealed interface MessageComposerEvent {
     data class InsertSuggestion(val resolvedSuggestion: ResolvedSuggestion) : MessageComposerEvent
     data object SaveDraft : MessageComposerEvent
     data object ClearSlashError : MessageComposerEvent
+
+    /** Arm ("Send later — <option>") or clear (null) the schedule applied to the next sent message. */
+    data class ScheduleAt(val sendAt: Long?) : MessageComposerEvent
+    data object ShowScheduledList : MessageComposerEvent
+    data object DismissScheduledList : MessageComposerEvent
+
+    /** POST action=send on the scheduled message and drop its local record. */
+    data class SendScheduledNow(val delayId: String) : MessageComposerEvent
+
+    /** POST action=cancel on the scheduled message and drop its local record. */
+    data class CancelScheduled(val delayId: String) : MessageComposerEvent
 }

@@ -78,9 +78,11 @@ dependencies {
     implementation(libs.sigpwned.emoji4j)
     implementation(libs.vanniktech.blurhash)
     implementation(libs.telephoto.zoomableimage)
+    implementation(libs.serialization.json)
     implementation(libs.matrix.emojibase.bindings)
     implementation(projects.features.knockrequests.api)
     implementation(projects.features.roommembermoderation.api)
+    implementation(projects.features.scheduling.impl)
 
     testCommonDependencies(libs, true)
     testImplementation(projects.libraries.matrix.test)
