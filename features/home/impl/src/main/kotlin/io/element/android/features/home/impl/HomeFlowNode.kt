@@ -32,6 +32,7 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.MobileScreen
 import io.element.android.annotations.ContributesNode
+import io.element.android.features.friends.api.FriendsEntryPoint
 import io.element.android.features.home.api.HomeEntryPoint
 import io.element.android.features.home.impl.components.RoomListMenuAction
 import io.element.android.features.home.impl.model.RoomListRoomSummary
@@ -85,6 +86,7 @@ class HomeFlowNode(
     private val acceptDeclineInviteView: AcceptDeclineInviteView,
     private val directLogoutView: DirectLogoutView,
     private val reportRoomEntryPoint: ReportRoomEntryPoint,
+    private val friendsEntryPoint: FriendsEntryPoint,
     private val declineInviteAndBlockUserEntryPoint: DeclineInviteAndBlockEntryPoint,
     private val changeRoomMemberRolesEntryPoint: ChangeRoomMemberRolesEntryPoint,
     private val leaveRoomRenderer: LeaveRoomRenderer,
@@ -128,6 +130,9 @@ class HomeFlowNode(
         data object Root : NavTarget
 
         @Parcelize
+        data object Friends : NavTarget
+
+        @Parcelize
         data class ReportRoom(val roomId: RoomId) : NavTarget
 
         @Parcelize
@@ -135,6 +140,10 @@ class HomeFlowNode(
 
         @Parcelize
         data class SelectNewOwnersWhenLeavingRoom(val roomId: RoomId) : NavTarget
+    }
+
+    private fun navigateToFriends() {
+        backstack.push(NavTarget.Friends)
     }
 
     private fun navigateToReportRoom(roomId: RoomId) {
@@ -232,6 +241,7 @@ class HomeFlowNode(
                 onMenuActionClick = { onMenuActionClick(activity, it) },
                 onReportRoomClick = ::navigateToReportRoom,
                 onDeclineInviteAndBlockUser = ::navigateToDeclineInviteAndBlockUser,
+                onFriendsClick = ::navigateToFriends,
                 modifier = modifier,
                 acceptDeclineInviteView = {
                     acceptDeclineInviteView.Render(
@@ -260,6 +270,12 @@ class HomeFlowNode(
 
     override fun resolve(navTarget: NavTarget, buildContext: BuildContext): Node {
         return when (navTarget) {
+            NavTarget.Friends -> {
+                friendsEntryPoint.createNode(
+                    parentNode = this,
+                    buildContext = buildContext,
+                )
+            }
             is NavTarget.ReportRoom -> {
                 reportRoomEntryPoint.createNode(
                     parentNode = this,

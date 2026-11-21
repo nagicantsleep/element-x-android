@@ -92,6 +92,7 @@ fun HomeView(
     onMenuActionClick: (RoomListMenuAction) -> Unit,
     onReportRoomClick: (roomId: RoomId) -> Unit,
     onDeclineInviteAndBlockUser: (roomSummary: RoomListRoomSummary) -> Unit,
+    onFriendsClick: () -> Unit = {},
     acceptDeclineInviteView: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     leaveRoomView: @Composable () -> Unit,
@@ -130,6 +131,7 @@ fun HomeView(
             onStartChatClick = { if (firstThrottler.canHandle()) onStartChatClick() },
             onCreateSpaceClick = { if (firstThrottler.canHandle()) onCreateSpaceClick() },
             onMenuActionClick = onMenuActionClick,
+            onFriendsClick = onFriendsClick,
         )
 
         if (state.globalSearchState.isEnabled) {
@@ -169,6 +171,7 @@ private fun HomeScaffold(
     onStartChatClick: () -> Unit,
     onCreateSpaceClick: () -> Unit,
     onMenuActionClick: (RoomListMenuAction) -> Unit,
+    onFriendsClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     fun onRoomClick(room: RoomListRoomSummary) {
@@ -221,6 +224,7 @@ private fun HomeScaffold(
                     state.eventSink(HomeEvent.SwitchToAccount(it))
                 },
                 onStartChatClick = onStartChatClick,
+                onFriendsClick = onFriendsClick,
                 scrollBehavior = scrollBehavior,
                 displayFilters = state.displayRoomListFilters,
                 filtersState = roomListState.filtersState,

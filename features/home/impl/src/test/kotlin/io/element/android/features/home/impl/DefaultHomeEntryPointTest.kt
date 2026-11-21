@@ -9,7 +9,9 @@
 package io.element.android.features.home.impl
 
 import com.bumble.appyx.core.modality.BuildContext
+import com.bumble.appyx.core.node.Node
 import com.google.common.truth.Truth.assertThat
+import io.element.android.features.friends.api.FriendsEntryPoint
 import io.element.android.features.home.api.HomeEntryPoint
 import io.element.android.features.invite.test.declineandblock.FakeDeclineInviteAndBlockEntryPoint
 import io.element.android.libraries.matrix.api.core.EventId
@@ -38,6 +40,9 @@ class DefaultHomeEntryPointTest : RobolectricTest() {
                 acceptDeclineInviteView = { _, _, _, _ -> lambdaError() },
                 directLogoutView = { _ -> lambdaError() },
                 reportRoomEntryPoint = { _, _, _ -> lambdaError() },
+                friendsEntryPoint = object : FriendsEntryPoint {
+                    override fun createNode(parentNode: Node, buildContext: BuildContext) = lambdaError()
+                },
                 declineInviteAndBlockUserEntryPoint = FakeDeclineInviteAndBlockEntryPoint(),
                 changeRoomMemberRolesEntryPoint = { _, _, _, _ -> lambdaError() },
                 leaveRoomRenderer = { _, _, _ -> lambdaError() },

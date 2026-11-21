@@ -112,6 +112,7 @@ fun HomeTopBar(
     onOpenSettings: () -> Unit,
     onAccountSwitch: (SessionId) -> Unit,
     onStartChatClick: () -> Unit,
+    onFriendsClick: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior,
     canReportBug: Boolean,
     displayFilters: Boolean,
@@ -183,6 +184,14 @@ fun HomeTopBar(
                         canReportBug = canReportBug,
                         spaceFiltersState = spaceFiltersState,
                     )
+                } else if (selectedNavigationItem == HomeNavigationBarItem.Contacts) {
+                    // Z/L layout: the Friends surface is reachable from the Contacts tab.
+                    IconButton(onClick = onFriendsClick) {
+                        Icon(
+                            imageVector = CompoundIcons.UserAdd(),
+                            contentDescription = stringResource(CommonStrings.screen_friends_title),
+                        )
+                    }
                 }
             },
             // We want a 16dp left padding for the navigationIcon :

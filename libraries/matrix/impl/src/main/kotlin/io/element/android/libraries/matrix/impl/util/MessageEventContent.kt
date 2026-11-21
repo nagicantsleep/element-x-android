@@ -25,6 +25,9 @@ import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdownAsEmote
  * Creates a [RoomMessageEventContentWithoutRelation] from a body, an html body and a list of mentions.
  */
 object MessageEventContent {
+    /** Content marker of a friend-request message inside a DM, shared with the web fork. */
+    private const val FRIEND_REQUEST_MSGTYPE = "m.friend_request"
+
     fun from(
         body: String,
         htmlBody: String?,
@@ -33,6 +36,14 @@ object MessageEventContent {
         asPlainText: Boolean = false,
     ): RoomMessageEventContentWithoutRelation {
         return when {
+            msgType == MsgType.MSG_TYPE_FRIEND_REQUEST -> contentWithoutRelationFromMessage(
+                MessageContent(
+                    msgType = MessageType.Other(msgtype = FRIEND_REQUEST_MSGTYPE, body = body),
+                    body = body,
+                    isEdited = false,
+                    mentions = null,
+                )
+            )
             asPlainText -> contentWithoutRelationFromMessage(
                 MessageContent(
                     msgType = MessageType.Text(

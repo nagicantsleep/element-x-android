@@ -63,6 +63,7 @@ dependencies {
     implementation(projects.libraries.previewutils)
     api(projects.features.home.api)
     // Z/L layout: the Contacts tab reuses the startchat user list.
+    implementation(projects.features.friends.impl)
     implementation(projects.features.startchat.impl)
     implementation(projects.features.startchat.api)
     implementation(projects.libraries.usersearch.api)

@@ -10,6 +10,8 @@ package io.element.android.libraries.matrix.api.timeline
 enum class MsgType {
     MSG_TYPE_TEXT,
     MSG_TYPE_EMOTE,
+    /** Friend-request DM marker shared with the web fork (`msgtype: m.friend_request`). */
+    MSG_TYPE_FRIEND_REQUEST,
 
     // For future support
     MSG_TYPE_SNOW,

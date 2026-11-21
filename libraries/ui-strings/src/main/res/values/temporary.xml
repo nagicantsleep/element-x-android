@@ -16,4 +16,7 @@
     <string name="theme_brand_default">Default</string>
     <string name="theme_brand_z">Z theme</string>
     <string name="theme_brand_l">L theme</string>
+
+    <!-- Friends (Z/L feature), maintained divergence; not Localazy-managed. -->
+    <string name="screen_friends_title">Friends</string>
 </resources>
