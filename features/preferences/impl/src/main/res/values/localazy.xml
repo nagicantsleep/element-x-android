@@ -61,6 +61,12 @@
   <string name="screen_labs_header_description">"Try out our latest ideas in development. These features are not finalised; they may be unstable, may change."</string>
   <string name="screen_labs_header_title">"Feeling experimental?"</string>
   <string name="screen_labs_title">"Labs"</string>
+  <string name="screen_language_settings_app_language">"App language"</string>
+  <string name="screen_language_settings_english">"English"</string>
+  <string name="screen_language_settings_japanese">"日本語"</string>
+  <string name="screen_language_settings_system_default">"System default"</string>
+  <string name="screen_language_settings_title">"Language"</string>
+  <string name="screen_language_settings_vietnamese">"Tiếng Việt"</string>
   <string name="screen_notification_settings_additional_settings_section_title">"Additional settings"</string>
   <string name="screen_notification_settings_call_ringtone_label">"Call ringtone"</string>
   <string name="screen_notification_settings_calls_label">"Audio and video calls"</string>

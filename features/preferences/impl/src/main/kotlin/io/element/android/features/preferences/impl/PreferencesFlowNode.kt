@@ -31,6 +31,7 @@ import io.element.android.features.preferences.impl.analytics.AnalyticsSettingsN
 import io.element.android.features.preferences.impl.blockedusers.BlockedUsersNode
 import io.element.android.features.preferences.impl.developer.DeveloperSettingsNode
 import io.element.android.features.preferences.impl.labs.LabsNode
+import io.element.android.features.preferences.impl.language.LanguageSettingsNode
 import io.element.android.features.preferences.impl.notifications.NotificationSettingsNode
 import io.element.android.features.preferences.impl.notifications.edit.EditDefaultNotificationSettingNode
 import io.element.android.features.preferences.impl.root.PreferencesRootNode
@@ -91,6 +92,9 @@ class PreferencesFlowNode(
 
         @Parcelize
         data object NotificationSettings : NavTarget
+
+        @Parcelize
+        data object LanguageSettings : NavTarget
 
         @Parcelize
         data object TroubleshootNotifications : NavTarget
@@ -155,6 +159,10 @@ class PreferencesFlowNode(
 
                     override fun navigateToNotificationSettings() {
                         backstack.push(NavTarget.NotificationSettings)
+                    }
+
+                    override fun navigateToLanguageSettings() {
+                        backstack.push(NavTarget.LanguageSettings)
                     }
 
                     override fun navigateToLockScreenSettings() {
@@ -225,6 +233,9 @@ class PreferencesFlowNode(
             }
             NavTarget.AnalyticsSettings -> {
                 createNode<AnalyticsSettingsNode>(buildContext)
+            }
+            NavTarget.LanguageSettings -> {
+                createNode<LanguageSettingsNode>(buildContext)
             }
             NavTarget.NotificationSettings -> {
                 val notificationSettingsCallback = object : NotificationSettingsNode.Callback {

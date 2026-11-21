@@ -8,6 +8,7 @@
 
 package io.element.android.features.preferences.impl.root
 
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -68,6 +69,7 @@ fun PreferencesRootView(
     onOpenAdvancedSettings: () -> Unit,
     onOpenLabs: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
+    onOpenLanguageSettings: () -> Unit,
     onOpenBlockedUsers: () -> Unit,
     onSignOutClick: () -> Unit,
     onDeactivateClick: () -> Unit,
@@ -108,6 +110,7 @@ fun PreferencesRootView(
             ManageAppSection(
                 state = state,
                 onOpenNotificationSettings = onOpenNotificationSettings,
+                onOpenLanguageSettings = onOpenLanguageSettings,
                 onOpenLockScreenSettings = onOpenLockScreenSettings,
                 onSecureBackupClick = onSecureBackupClick,
             )
@@ -213,6 +216,7 @@ private fun ColumnScope.MultiAccountSection(
 private fun ColumnScope.ManageAppSection(
     state: PreferencesRootState,
     onOpenNotificationSettings: () -> Unit,
+    onOpenLanguageSettings: () -> Unit,
     onOpenLockScreenSettings: () -> Unit,
     onSecureBackupClick: () -> Unit,
 ) {
@@ -221,6 +225,14 @@ private fun ColumnScope.ManageAppSection(
         leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Notifications())),
         onClick = onOpenNotificationSettings,
     )
+    // Per-app language needs the API 33+ LocaleManager API.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ListItem(
+            content = { Text(stringResource(id = R.string.screen_language_settings_title)) },
+            leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Translate())),
+            onClick = onOpenLanguageSettings,
+        )
+    }
     ListItem(
         content = { Text(stringResource(id = CommonStrings.common_screen_lock)) },
         leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Lock())),
@@ -396,6 +408,7 @@ private fun ContentToPreview(state: PreferencesRootState) {
         onManageAccountClick = {},
         onLinkNewDeviceClick = {},
         onOpenNotificationSettings = {},
+        onOpenLanguageSettings = {},
         onOpenLockScreenSettings = {},
         onOpenBlockedUsers = {},
         onSignOutClick = {},
