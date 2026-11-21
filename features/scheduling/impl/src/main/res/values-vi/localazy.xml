@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 nagicantsleep
+  ~
+  ~ SPDX-License-Identifier: AGPL-3.0-only
+  -->
+
+<resources>
+  <string name="screen_scheduling_send_later">"Gửi sau"</string>
+  <string name="screen_scheduling_option_in_1_hour">"Sau 1 giờ"</string>
+  <string name="screen_scheduling_option_in_8_hours">"Sau 8 giờ"</string>
+  <string name="screen_scheduling_option_in_24_hours">"Sau 24 giờ"</string>
+  <string name="screen_scheduling_option_custom">"Chọn giờ…"</string>
+  <string name="screen_scheduling_scheduled_for">"Hẹn gửi lúc %1$s"</string>
+  <string name="screen_scheduling_list_title">"Tin nhắn hẹn giờ"</string>
+  <string name="screen_scheduling_action_send_now">"Gửi ngay"</string>
+  <string name="screen_scheduling_action_cancel">"Hủy"</string>
+  <string name="screen_scheduling_empty">"Không có tin nhắn hẹn giờ trong phòng này"</string>
+  <string name="screen_scheduling_error_schedule_failed">"Không hẹn giờ được tin nhắn"</string>
+  <string name="screen_scheduling_error_send_now_failed">"Không gửi được tin nhắn hẹn giờ"</string>
+  <string name="screen_scheduling_error_cancel_failed">"Không hủy được tin nhắn hẹn giờ"</string>
+  <string name="screen_scheduling_a11y_send_later_options">"Các lựa chọn hẹn giờ gửi"</string>
+  <string name="screen_scheduling_a11y_remove_scheduled">"Xóa tin nhắn hẹn giờ"</string>
+  <string name="screen_scheduling_custom_time_confirm">"OK"</string>
+  <string name="screen_scheduling_custom_time_cancel">"Hủy"</string>
+</resources>

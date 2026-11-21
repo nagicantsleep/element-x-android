@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 nagicantsleep
+  ~
+  ~ SPDX-License-Identifier: AGPL-3.0-only
+  -->
+
+<resources>
+  <string name="screen_friends_title">"Bạn bè"</string>
+  <string name="screen_friends_add_hint">"Nhập Matrix user ID, ví dụ @alice:example.org"</string>
+  <string name="screen_friends_add_friend">"Thêm bạn"</string>
+  <string name="screen_friends_empty">"Chưa có bạn bè"</string>
+  <string name="screen_friends_incoming_requests">"Lời mời kết bạn nhận được"</string>
+  <string name="screen_friends_outgoing_requests">"Lời mời kết bạn đã gửi"</string>
+  <string name="screen_friends_cancel_request">"Hủy lời mời"</string>
+  <string name="screen_friends_remove_friend">"Xóa bạn"</string>
+  <string name="screen_friends_my_qr_code">"Mã QR của tôi"</string>
+  <string name="screen_friends_result_requested">"Đã gửi lời mời kết bạn"</string>
+  <string name="screen_friends_result_already_friends">"Hai bạn đã là bạn bè"</string>
+  <string name="screen_friends_result_accepted">"Đã kết bạn"</string>
+  <string name="screen_friends_request_failed">"Không gửi được lời mời kết bạn"</string>
+  <string name="screen_friends_accept_failed">"Không chấp nhận được lời mời kết bạn"</string>
+  <string name="screen_friends_invalid_user_id">"Matrix user ID không hợp lệ"</string>
+</resources>
