@@ -425,6 +425,20 @@ class PreferencesRootViewTest : RobolectricTest() {
         onNodeWithText(version).performScrollTo().performClick()
         eventsRecorder.assertSingle(PreferencesRootEvent.OnVersionInfoClick)
     }
+
+    @Test
+    fun `click on Language invokes the expected callback`() = runAndroidComposeUiTest {
+        ensureCalledOnce { callback ->
+            setView(
+                aPreferencesRootState(
+                    eventSink = EventsRecorder<PreferencesRootEvent>(expectEvents = false),
+                ),
+                onOpenLanguageSettings = callback,
+            )
+            val text = activity!!.getString(R.string.screen_language_settings_title)
+            onNode(hasText(text) and hasClickAction()).performScrollTo().performClick()
+        }
+    }
 }
 
 private fun AndroidComposeUiTest<ComponentActivity>.setView(
@@ -442,6 +456,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setView(
     onOpenAdvancedSettings: () -> Unit = EnsureNeverCalled(),
     onOpenLabs: () -> Unit = EnsureNeverCalled(),
     onOpenNotificationSettings: () -> Unit = EnsureNeverCalled(),
+    onOpenLanguageSettings: () -> Unit = EnsureNeverCalled(),
     onOpenBlockedUsers: () -> Unit = EnsureNeverCalled(),
     onSignOutClick: () -> Unit = EnsureNeverCalled(),
     onDeactivateClick: () -> Unit = EnsureNeverCalled(),
@@ -463,6 +478,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setView(
             onOpenAdvancedSettings = onOpenAdvancedSettings,
             onOpenLabs = onOpenLabs,
             onOpenNotificationSettings = onOpenNotificationSettings,
+            onOpenLanguageSettings = onOpenLanguageSettings,
             onOpenBlockedUsers = onOpenBlockedUsers,
             onSignOutClick = onSignOutClick,
             onDeactivateClick = onDeactivateClick,
