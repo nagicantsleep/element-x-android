@@ -237,11 +237,13 @@ class DefaultFriendsServiceTest {
 
         assertThat(accountData[FRIEND_REQUESTS_EVENT_TYPE]).contains(A_USER_ID_2.value)
         assertThat(accountData[FRIEND_REQUESTS_EVENT_TYPE]).contains("\"in\"")
-        // The observer is idempotent: re-emitting the same summary does not duplicate work.
+        // The observer is idempotent: re-emitting the same summary does not change the stored requests.
+        val afterFirst = accountData[FRIEND_REQUESTS_EVENT_TYPE]
+        summaries.value = emptyList()
+        advanceUntilIdle()
         summaries.value = listOf(markerSummary)
         advanceUntilIdle()
-        assertThat(accountData[FRIEND_REQUESTS_EVENT_TYPE]!!.count { it == '"' } / 2)
-            .isEqualTo(accountData[FRIEND_REQUESTS_EVENT_TYPE]!!.count { it == '"' } / 2)
+        assertThat(accountData[FRIEND_REQUESTS_EVENT_TYPE]).isEqualTo(afterFirst)
 
         observer.cancel()
         coroutineContext.cancelChildren()
