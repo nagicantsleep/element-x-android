@@ -16,6 +16,8 @@ data class TimelineItemTextContent(
     override val htmlDocument: Document?,
     override val formattedBody: CharSequence,
     override val isEdited: Boolean,
+    /** True for `m.friend_request` marker events, which render a localized label instead of the body. */
+    val isFriendRequest: Boolean = false,
 ) : TimelineItemTextBasedContent {
     override val type: String = "TimelineItemTextContent"
     override val plainText: String = htmlDocument?.toPlainText() ?: body

@@ -45,6 +45,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.isFriendRequestMarker
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
 import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
@@ -64,18 +65,6 @@ private const val MIN_IMAGE_SIZE = 1L
 private const val MAX_IMAGE_SIZE = 10_000L
 private const val MIN_ASPECT_RATIO = 0.001f
 private const val MAX_ASPECT_RATIO = 10f
-
-/**
- * The `msgtype` of the friend-request DM marker message, shared with the web fork.
- * The renderer replaces [FRIEND_REQUEST_DISPLAY_SENTINEL] with the localized label.
- */
-const val FRIEND_REQUEST_DISPLAY_MSGTYPE = "m.friend_request"
-
-/**
- * Sentinel body emitted for friend-request marker events so the view layer can render
- * the localized label (`CommonStrings.friend_request_display`). Never displayed as-is.
- */
-const val FRIEND_REQUEST_DISPLAY_SENTINEL = "\u200Bm.friend_request\u200B"
 
 @Inject
 class TimelineItemContentMessageFactory(
@@ -277,16 +266,28 @@ class TimelineItemContentMessageFactory(
             }
             is TextMessageType -> {
                 val body = messageType.body.trimEnd()
-                val dom = messageType.formatted?.toHtmlDocument(permalinkParser = permalinkParser)
-                val formattedBody = dom?.let(::parseHtml)
-                    ?: textPillificationHelper.pillify(body).safeLinkify()
-                val htmlDocument = messageType.formatted?.toHtmlDocument(permalinkParser = permalinkParser)
-                TimelineItemTextContent(
-                    body = body,
-                    htmlDocument = htmlDocument,
-                    formattedBody = formattedBody,
-                    isEdited = content.isEdited,
-                )
+                if (messageType.isFriendRequestMarker()) {
+                    // Friend requests never render formatted_body as HTML; the view substitutes
+                    // the localized label based on [TimelineItemTextContent.isFriendRequest] (ADR 0016).
+                    TimelineItemTextContent(
+                        body = body,
+                        htmlDocument = null,
+                        formattedBody = textPillificationHelper.pillify(body).safeLinkify(),
+                        isEdited = content.isEdited,
+                        isFriendRequest = true,
+                    )
+                } else {
+                    val dom = messageType.formatted?.toHtmlDocument(permalinkParser = permalinkParser)
+                    val formattedBody = dom?.let(::parseHtml)
+                        ?: textPillificationHelper.pillify(body).safeLinkify()
+                    val htmlDocument = messageType.formatted?.toHtmlDocument(permalinkParser = permalinkParser)
+                    TimelineItemTextContent(
+                        body = body,
+                        htmlDocument = htmlDocument,
+                        formattedBody = formattedBody,
+                        isEdited = content.isEdited,
+                    )
+                }
             }
             is GalleryMessageType -> {
                 val dom = messageType.formatted?.toHtmlDocument(permalinkParser = permalinkParser)
@@ -430,18 +431,15 @@ class TimelineItemContentMessageFactory(
             }
             is OtherMessageType -> {
                 // Friend requests keep the English body on the wire (interop) but must render
-                // with a localized label (ADR 0016). The factory is not @Composable, so it emits
-                // the sentinel and the view substitutes the localized label.
-                val body = if (messageType.msgType == FRIEND_REQUEST_DISPLAY_MSGTYPE) {
-                    FRIEND_REQUEST_DISPLAY_SENTINEL
-                } else {
-                    messageType.body
-                }.trimEnd()
+                // with a localized label (ADR 0016). The real body is preserved and the view
+                // substitutes the label based on [TimelineItemTextContent.isFriendRequest].
+                val body = messageType.body.trimEnd()
                 TimelineItemTextContent(
                     body = body,
                     htmlDocument = null,
                     formattedBody = textPillificationHelper.pillify(body).safeLinkify(),
                     isEdited = content.isEdited,
+                    isFriendRequest = messageType.isFriendRequestMarker(),
                 )
             }
         }

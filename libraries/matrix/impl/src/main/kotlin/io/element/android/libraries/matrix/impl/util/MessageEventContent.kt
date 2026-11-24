@@ -20,13 +20,15 @@ import org.matrix.rustcomponents.sdk.messageEventContentFromHtml
 import org.matrix.rustcomponents.sdk.messageEventContentFromHtmlAsEmote
 import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdown
 import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdownAsEmote
+import org.matrix.rustcomponents.sdk.FormattedBody as FfiFormattedBody
+import org.matrix.rustcomponents.sdk.MessageFormat as FfiMessageFormat
 
 /**
  * Creates a [RoomMessageEventContentWithoutRelation] from a body, an html body and a list of mentions.
  */
 object MessageEventContent {
-    /** Content marker of a friend-request message inside a DM, shared with the web fork. */
-    private const val FRIEND_REQUEST_MSGTYPE = "m.friend_request"
+    /** Custom `format` value of a friend-request DM marker, wire format v2 (ADR 0016). */
+    private const val FRIEND_REQUEST_FORMAT = "io.nagi.friend_request"
 
     fun from(
         body: String,
@@ -36,9 +38,21 @@ object MessageEventContent {
         asPlainText: Boolean = false,
     ): RoomMessageEventContentWithoutRelation {
         return when {
+            // Friend requests are sent as plain text with a custom `format` value (wire format v2,
+            // ADR 0016): the Rust SDK passes the unknown format through as MessageFormat.Unknown,
+            // and m.text avoids `.m.rule.suppress_notices`. The formatted body mirrors the plain
+            // body for interop with the web fork.
             msgType == MsgType.MSG_TYPE_FRIEND_REQUEST -> contentWithoutRelationFromMessage(
                 MessageContent(
-                    msgType = MessageType.Other(msgtype = FRIEND_REQUEST_MSGTYPE, body = body),
+                    msgType = MessageType.Text(
+                        TextMessageContent(
+                            body = body,
+                            formatted = FfiFormattedBody(
+                                format = FfiMessageFormat.Unknown(format = FRIEND_REQUEST_FORMAT),
+                                body = body,
+                            ),
+                        )
+                    ),
                     body = body,
                     isEdited = false,
                     mentions = null,

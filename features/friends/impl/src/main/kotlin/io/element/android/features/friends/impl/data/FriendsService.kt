@@ -8,7 +8,6 @@ package io.element.android.features.friends.impl.data
 
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.SingleIn
-import io.element.android.features.friends.impl.model.FRIEND_REQUEST_MSGTYPE
 import io.element.android.features.friends.impl.model.FriendEntry
 import io.element.android.features.friends.impl.model.FriendRequestDirection
 import io.element.android.features.friends.impl.model.FriendRequestEntry
@@ -263,10 +262,5 @@ class DefaultFriendsService(
             msgType = MsgType.MSG_TYPE_FRIEND_REQUEST,
             asPlainText = true,
         )
-    }
-
-    companion object {
-        /** Marker msgtype used by the web fork; kept next to [FRIEND_REQUEST_MSGTYPE] for clarity. */
-        const val FRIEND_REQUEST_MSG_TYPE = FRIEND_REQUEST_MSGTYPE
     }
 }

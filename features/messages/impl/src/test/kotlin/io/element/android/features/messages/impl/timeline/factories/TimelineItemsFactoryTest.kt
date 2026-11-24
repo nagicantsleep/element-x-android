@@ -19,8 +19,11 @@ import io.element.android.libraries.matrix.api.core.UniqueId
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.ThreadSummary
+import io.element.android.libraries.matrix.api.timeline.item.event.FormattedBody
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
+import io.element.android.libraries.matrix.api.timeline.item.event.TextMessageType
 import io.element.android.libraries.matrix.test.A_THREAD_ID
 import io.element.android.libraries.matrix.test.A_USER_ID
 import io.element.android.libraries.matrix.test.A_USER_ID_2
@@ -169,6 +172,151 @@ class TimelineItemsFactoryTest {
                 .filterIsInstance<TimelineItem.Event>()
                 .map { (it.content as TimelineItemTextContent).body }
             assertThat(bodies).containsExactly("A regular message")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a friend request marker message keeps its body and is flagged as friend request`() = runTest {
+        val factory = aTimelineItemsFactory(
+            config = TimelineItemsFactoryConfig(
+                computeReadReceipts = false,
+                computeReactions = false,
+            )
+        )
+        val items = listOf(
+            MatrixTimelineItem.Event(
+                uniqueId = UniqueId("event-0"),
+                event = anEventTimelineItem(
+                    sender = A_USER_ID,
+                    content = aMessageContent(
+                        body = "👋 Friend request",
+                        messageType = OtherMessageType(
+                            msgType = "m.friend_request",
+                            body = "👋 Friend request",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        factory.timelineItems.test {
+            factory.replaceWith(
+                timelineItems = items,
+                roomMembers = emptyList(),
+                renderReadReceipts = false,
+            )
+            val contents = awaitItem()
+                .filterIsInstance<TimelineItem.Event>()
+                .map { it.content as TimelineItemTextContent }
+            // The body stays on the model for copy/quote/search; the view substitutes the
+            // localized label based on isFriendRequest (ADR 0016).
+            assertThat(contents).containsExactly(
+                TimelineItemTextContent(
+                    body = "👋 Friend request",
+                    htmlDocument = null,
+                    formattedBody = "👋 Friend request",
+                    isEdited = false,
+                    isFriendRequest = true,
+                )
+            )
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a wire v2 friend request text message is flagged and never HTML-rendered`() = runTest {
+        val factory = aTimelineItemsFactory(
+            config = TimelineItemsFactoryConfig(
+                computeReadReceipts = false,
+                computeReactions = false,
+            )
+        )
+        val items = listOf(
+            MatrixTimelineItem.Event(
+                uniqueId = UniqueId("event-0"),
+                event = anEventTimelineItem(
+                    sender = A_USER_ID,
+                    content = aMessageContent(
+                        body = "👋 Friend request",
+                        messageType = TextMessageType(
+                            body = "👋 Friend request",
+                            formatted = FormattedBody(
+                                format = MessageFormat.UNKNOWN,
+                                body = "<b>👋 Friend request</b>",
+                                rawFormat = "io.nagi.friend_request",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        factory.timelineItems.test {
+            factory.replaceWith(
+                timelineItems = items,
+                roomMembers = emptyList(),
+                renderReadReceipts = false,
+            )
+            val contents = awaitItem()
+                .filterIsInstance<TimelineItem.Event>()
+                .map { it.content as TimelineItemTextContent }
+            assertThat(contents).containsExactly(
+                TimelineItemTextContent(
+                    body = "👋 Friend request",
+                    htmlDocument = null,
+                    formattedBody = "👋 Friend request",
+                    isEdited = false,
+                    isFriendRequest = true,
+                )
+            )
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a wire v2 text message with an unrelated unknown format renders normally`() = runTest {
+        val factory = aTimelineItemsFactory(
+            config = TimelineItemsFactoryConfig(
+                computeReadReceipts = false,
+                computeReactions = false,
+            )
+        )
+        val items = listOf(
+            MatrixTimelineItem.Event(
+                uniqueId = UniqueId("event-0"),
+                event = anEventTimelineItem(
+                    sender = A_USER_ID,
+                    content = aMessageContent(
+                        body = "A regular message",
+                        messageType = TextMessageType(
+                            body = "A regular message",
+                            formatted = FormattedBody(
+                                format = MessageFormat.UNKNOWN,
+                                body = "A regular message",
+                                rawFormat = "io.nagi.something_else",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        factory.timelineItems.test {
+            factory.replaceWith(
+                timelineItems = items,
+                roomMembers = emptyList(),
+                renderReadReceipts = false,
+            )
+            val contents = awaitItem()
+                .filterIsInstance<TimelineItem.Event>()
+                .map { it.content as TimelineItemTextContent }
+            assertThat(contents).containsExactly(
+                TimelineItemTextContent(
+                    body = "A regular message",
+                    htmlDocument = null,
+                    formattedBody = "A regular message",
+                    isEdited = false,
+                    isFriendRequest = false,
+                )
+            )
             cancelAndIgnoreRemainingEvents()
         }
     }

@@ -136,3 +136,19 @@ data class OtherMessageType(
     val isKeyVerificationRequest: Boolean
         get() = msgType == "m.key.verification.request"
 }
+
+/** The `format` value of a friend-request DM marker sent with wire format v2 (ADR 0016). */
+const val FRIEND_REQUEST_FORMAT = "io.nagi.friend_request"
+
+/** The legacy `msgtype` of the friend-request DM marker message (ADR 0016). */
+const val FRIEND_REQUEST_MSGTYPE = "m.friend_request"
+
+/**
+ * A message is a friend-request DM marker iff `msgtype == m.friend_request` (legacy) or
+ * `format == io.nagi.friend_request` (v2, carried on [FormattedBody.rawFormat]).
+ */
+fun MessageType.isFriendRequestMarker(): Boolean = when (this) {
+    is OtherMessageType -> msgType == FRIEND_REQUEST_MSGTYPE
+    is TextMessageType -> formatted?.rawFormat == FRIEND_REQUEST_FORMAT
+    else -> false
+}

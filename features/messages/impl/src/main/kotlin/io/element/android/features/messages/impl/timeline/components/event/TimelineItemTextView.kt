@@ -26,10 +26,10 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.features.messages.impl.timeline.components.layout.ContentAvoidingLayout
 import io.element.android.features.messages.impl.timeline.components.layout.ContentAvoidingLayoutData
-import io.element.android.features.messages.impl.timeline.factories.event.FRIEND_REQUEST_DISPLAY_SENTINEL
 import io.element.android.features.messages.impl.timeline.model.event.AN_EMOJI_ONLY_TEXT
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextBasedContent
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextBasedContentPreviewParam
+import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextContent
 import io.element.android.features.messages.impl.timeline.model.event.aTimelineItemTextContent
 import io.element.android.features.messages.impl.utils.containsOnlyEmojis
 import io.element.android.libraries.androidutils.text.LinkifyHelper
@@ -67,9 +67,9 @@ fun TimelineItemTextView(
         else -> ElementTheme.typography.fontBodyLgRegular
     }
     val outgoingTextColor = LocalBrandLayout.current.outgoingTextColor
-    // Friend-request marker events arrive with a sentinel body; render the localized label
+    // Friend-request marker events keep their real body; render the localized label
     // instead (ADR 0016). The sent body stays English on the wire.
-    val renderedText = if (content.body == FRIEND_REQUEST_DISPLAY_SENTINEL) {
+    val renderedText = if (content is TimelineItemTextContent && content.isFriendRequest) {
         stringResource(CommonStrings.friend_request_display)
     } else {
         null

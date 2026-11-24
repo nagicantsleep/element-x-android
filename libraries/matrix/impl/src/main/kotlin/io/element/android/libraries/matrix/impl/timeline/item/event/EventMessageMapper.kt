@@ -188,7 +188,8 @@ class EventMessageMapper {
 
 private fun RustFormattedBody.map(): FormattedBody = FormattedBody(
     format = format.map(),
-    body = body
+    body = body,
+    rawFormat = (format as? RustMessageFormat.Unknown)?.format,
 )
 
 private fun RustMessageFormat.map(): MessageFormat {

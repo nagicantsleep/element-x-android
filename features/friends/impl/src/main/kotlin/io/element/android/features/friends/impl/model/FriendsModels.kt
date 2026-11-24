@@ -10,7 +10,7 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
-import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.isFriendRequestMarker
 
 enum class FriendRequestDirection { INCOMING, OUTGOING }
 
@@ -72,16 +72,17 @@ const val FRIEND_REQUEST_MSGTYPE = "m.friend_request"
 
 /**
  * Extract an incoming friend request from a room summary's latest event, mirroring web's
- * `observeFriendRequest`: a DM `m.room.message` with `msgtype: m.friend_request` sent by someone
- * else. Returns null when the summary is not a friend-request marker.
+ * `observeFriendRequest`: a DM `m.room.message` friend-request marker (legacy
+ * `msgtype: m.friend_request` or v2 `format: io.nagi.friend_request`) sent by someone else.
+ * Returns null when the summary is not a friend-request marker.
  */
 fun friendRequestFromSummary(summary: RoomSummary, ownUserId: UserId): FriendRequestEntry? {
     if (!summary.info.isDm) return null
     val latest = summary.latestEvent as? LatestEventValue.Remote ?: return null
     if (latest.isOwn) return null
     if (latest.senderId == ownUserId) return null
-    val messageType = (latest.content as? MessageContent)?.type as? OtherMessageType ?: return null
-    if (messageType.msgType != FRIEND_REQUEST_MSGTYPE) return null
+    val messageType = (latest.content as? MessageContent)?.type ?: return null
+    if (!messageType.isFriendRequestMarker()) return null
     return FriendRequestEntry(
         userId = latest.senderId,
         displayName = null,

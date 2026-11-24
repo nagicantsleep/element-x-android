@@ -15,7 +15,11 @@ import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.androidutils.json.DefaultJsonProvider
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
+import io.element.android.libraries.matrix.api.timeline.item.event.FRIEND_REQUEST_FORMAT
+import io.element.android.libraries.matrix.api.timeline.item.event.FormattedBody
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.TextMessageType
 import io.element.android.libraries.matrix.test.A_ROOM_ID
 import io.element.android.libraries.matrix.test.A_USER_ID
 import io.element.android.libraries.matrix.test.A_USER_ID_2
@@ -238,6 +242,44 @@ class DefaultFriendsServiceTest {
         advanceUntilIdle()
         assertThat(accountData[FRIEND_REQUESTS_EVENT_TYPE]!!.count { it == '"' } / 2)
             .isEqualTo(accountData[FRIEND_REQUESTS_EVENT_TYPE]!!.count { it == '"' } / 2)
+
+        observer.cancel()
+        coroutineContext.cancelChildren()
+    }
+
+    @Test
+    fun `observeIncomingRequests - records wire v2 DM marker messages as incoming requests`() = runTest {
+        val summaries = MutableStateFlow<List<io.element.android.libraries.matrix.api.roomlist.RoomSummary>>(emptyList())
+        val restApi = FakeFriendsRestApi()
+        val service = createService(restApi, summaries = summaries)
+        val observer = launch { service.observeIncomingRequests() }
+        advanceUntilIdle()
+
+        val markerSummary = aRoomSummary(
+            roomId = A_ROOM_ID,
+            isDm = true,
+            latestEvent = LatestEventValue.Remote(
+                timestamp = 42L,
+                content = aMessageContent(
+                    messageType = TextMessageType(
+                        body = "👋 Friend request",
+                        formatted = FormattedBody(
+                            format = MessageFormat.UNKNOWN,
+                            body = "👋 Friend request",
+                            rawFormat = FRIEND_REQUEST_FORMAT,
+                        ),
+                    ),
+                ),
+                senderId = A_USER_ID_2,
+                senderProfile = aProfileDetails(),
+                isOwn = false,
+            ),
+        )
+        summaries.value = listOf(markerSummary)
+        advanceUntilIdle()
+
+        assertThat(accountData[FRIEND_REQUESTS_EVENT_TYPE]).contains(A_USER_ID_2.value)
+        assertThat(accountData[FRIEND_REQUESTS_EVENT_TYPE]).contains("\"in\"")
 
         observer.cancel()
         coroutineContext.cancelChildren()

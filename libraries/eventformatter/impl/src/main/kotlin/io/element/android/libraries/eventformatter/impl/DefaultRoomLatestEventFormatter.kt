@@ -45,12 +45,10 @@ import io.element.android.libraries.matrix.api.timeline.item.event.UnknownConten
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
+import io.element.android.libraries.matrix.api.timeline.item.event.isFriendRequestMarker
 import io.element.android.libraries.matrix.ui.messages.toPlainText
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.services.toolbox.api.strings.StringProvider
-
-/** The `msgtype` of the friend-request DM marker message, shared with the web fork. */
-private const val FRIEND_REQUEST_DISPLAY_MSGTYPE = "m.friend_request"
 
 @ContributesBinding(SessionScope::class)
 class DefaultRoomLatestEventFormatter(
@@ -141,7 +139,12 @@ class DefaultRoomLatestEventFormatter(
                 return "* ${senderDisambiguatedDisplayName.bidiIsolate()} ${messageType.body}"
             }
             is TextMessageType -> {
-                messageType.toPlainText(permalinkParser)
+                if (messageType.isFriendRequestMarker()) {
+                    // Wire format v2 marker: render the localized label, never the formatted body (ADR 0016).
+                    sp.getString(CommonStrings.friend_request_display)
+                } else {
+                    messageType.toPlainText(permalinkParser)
+                }
             }
             is VideoMessageType -> {
                 messageType.toPlainText(permalinkParser).prefixWith(sp.getString(CommonStrings.common_video))
@@ -171,7 +174,7 @@ class DefaultRoomLatestEventFormatter(
             is OtherMessageType -> {
                 // Friend requests keep the English body on the wire (interop) but render
                 // with a localized label (ADR 0016).
-                if (messageType.msgType == FRIEND_REQUEST_DISPLAY_MSGTYPE) {
+                if (messageType.isFriendRequestMarker()) {
                     sp.getString(CommonStrings.friend_request_display)
                 } else {
                     messageType.body

@@ -6,10 +6,13 @@
 
 package io.element.android.features.friends.impl.model
 
+import io.element.android.libraries.matrix.api.timeline.item.event.FRIEND_REQUEST_FORMAT
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import io.element.android.libraries.matrix.api.timeline.item.event.FormattedBody
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextMessageType
 import io.element.android.libraries.matrix.test.A_USER_ID
@@ -125,6 +128,54 @@ class FriendsMergeTest {
             ),
         )
         assertThat(friendRequestFromSummary(invite, A_USER_ID)).isNull()
+    }
+
+    @Test
+    fun `friendRequestFromSummary - maps a wire v2 text marker`() {
+        val summary = aRoomSummary(
+            roomId = io.element.android.libraries.matrix.test.A_ROOM_ID,
+            isDm = true,
+            latestEvent = aRemoteEvent(
+                senderId = A_USER_ID_2,
+                content = aMessageContent(
+                    messageType = TextMessageType(
+                        body = "👋 Friend request",
+                        formatted = FormattedBody(
+                            format = MessageFormat.UNKNOWN,
+                            body = "👋 Friend request",
+                            rawFormat = FRIEND_REQUEST_FORMAT,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val request = friendRequestFromSummary(summary, ownUserId = A_USER_ID)
+        assertThat(request).isNotNull()
+        assertThat(request!!.userId).isEqualTo(A_USER_ID_2)
+        assertThat(request.createdAt).isEqualTo(42L)
+        assertThat(request.direction).isEqualTo(FriendRequestDirection.INCOMING)
+    }
+
+    @Test
+    fun `friendRequestFromSummary - ignores wire v2 text with an unrelated format`() {
+        val summary = aRoomSummary(
+            roomId = io.element.android.libraries.matrix.test.A_ROOM_ID,
+            isDm = true,
+            latestEvent = aRemoteEvent(
+                senderId = A_USER_ID_2,
+                content = aMessageContent(
+                    messageType = TextMessageType(
+                        body = "hello",
+                        formatted = FormattedBody(
+                            format = MessageFormat.UNKNOWN,
+                            body = "hello",
+                            rawFormat = "io.nagi.something_else",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        assertThat(friendRequestFromSummary(summary, A_USER_ID)).isNull()
     }
 
     private fun aFriendRequestMessageContent(): MessageContent =
