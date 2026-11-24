@@ -148,6 +148,9 @@ fun HomeTopBar(
         RoomListHeaderLayout.LPlain -> {
             LPlainRoomListHeader(
                 selectedNavigationItem = selectedNavigationItem,
+                currentUserAndNeighbors = currentUserAndNeighbors,
+                showAvatarIndicator = showAvatarIndicator,
+                onAccountSwitch = onAccountSwitch,
                 onStartChatClick = onStartChatClick,
                 onOpenSettings = onOpenSettings,
                 onToggleSearch = onToggleSearch,
@@ -334,6 +337,9 @@ private fun ZAccentRoomListHeader(
 @Composable
 private fun LPlainRoomListHeader(
     selectedNavigationItem: HomeNavigationBarItem,
+    currentUserAndNeighbors: ImmutableList<MatrixUser>,
+    showAvatarIndicator: Boolean,
+    onAccountSwitch: (SessionId) -> Unit,
     onStartChatClick: () -> Unit,
     onOpenSettings: () -> Unit,
     onToggleSearch: () -> Unit,
@@ -352,9 +358,9 @@ private fun LPlainRoomListHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             NavigationIcon(
-                currentUserAndNeighbors = persistentListOf(),
-                showAvatarIndicator = false,
-                onAccountSwitch = {},
+                currentUserAndNeighbors = currentUserAndNeighbors,
+                showAvatarIndicator = showAvatarIndicator,
+                onAccountSwitch = onAccountSwitch,
                 onClick = onOpenSettings,
             )
             Spacer(Modifier.width(8.dp))
@@ -538,7 +544,9 @@ private fun NavigationIcon(
         val latestOnAccountSwitch by rememberUpdatedState(onAccountSwitch)
         LaunchedEffect(pagerState) {
             snapshotFlow { pagerState.settledPage }.collect { page ->
-                latestOnAccountSwitch(SessionId(currentUserAndNeighbors[page].userId.value))
+                currentUserAndNeighbors.getOrNull(page)?.let { user ->
+                    latestOnAccountSwitch(SessionId(user.userId.value))
+                }
             }
         }
         VerticalPager(
