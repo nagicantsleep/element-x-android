@@ -108,7 +108,8 @@ class RoomListViewTest : RobolectricTest() {
             // Remove automatic initial events
             eventsRecorder.clear()
 
-            clickOn(CommonStrings.action_continue)
+            // Compact banner: the row itself is the action.
+            clickOn(CommonStrings.banner_recovery_compact_confirm)
 
             eventsRecorder.assertEmpty()
         }
@@ -127,7 +128,8 @@ class RoomListViewTest : RobolectricTest() {
             )
             // Remove automatic initial events
             eventsRecorder.clear()
-            clickOn(R.string.banner_set_up_recovery_submit)
+            // Compact banner: the row itself is the action.
+            clickOn(CommonStrings.banner_recovery_compact_set_up)
             eventsRecorder.assertEmpty()
         }
     }
