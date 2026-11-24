@@ -81,7 +81,13 @@ fun TimelineItemTextView(
         val text = getTextWithResolvedMentions(content)
         Box(modifier.semantics { contentDescription = renderedText ?: content.plainText }) {
             if (renderedText != null) {
-                Text(text = renderedText)
+                // Measure the rendered label, not the wire body: the timestamp overlay avoids
+                // the area reported through [onContentLayoutChange], so the friend-request
+                // label must reserve space for the text actually displayed (ADR 0016).
+                Text(
+                    text = renderedText,
+                    onTextLayout = ContentAvoidingLayout.measureLastTextLine(onContentLayoutChange = onContentLayoutChange),
+                )
             } else {
                 EditorStyledText(
                     text = text,

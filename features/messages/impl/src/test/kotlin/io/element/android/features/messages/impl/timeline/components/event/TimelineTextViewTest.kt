@@ -14,21 +14,28 @@ import android.text.SpannableString
 import android.text.SpannedString
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.test.AndroidComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import com.google.common.truth.Truth.assertThat
+import io.element.android.compound.theme.ElementTheme
+import io.element.android.features.messages.impl.timeline.components.layout.ContentAvoidingLayoutData
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextBasedContent
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextContent
+import io.element.android.features.messages.impl.timeline.model.event.aTimelineItemTextContent
 import io.element.android.features.messages.impl.utils.FakeMentionSpanFormatter
+import io.element.android.libraries.designsystem.preview.ElementPreview
+import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.test.A_ROOM_ID
 import io.element.android.libraries.matrix.test.A_ROOM_ID_2
 import io.element.android.libraries.matrix.test.A_USER_ID
 import io.element.android.libraries.matrix.ui.messages.RoomMemberProfilesCache
 import io.element.android.libraries.matrix.ui.messages.RoomNamesCache
+import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.libraries.textcomposer.mentions.DefaultMentionSpanUpdater
 import io.element.android.libraries.textcomposer.mentions.LocalMentionSpanUpdater
 import io.element.android.libraries.textcomposer.mentions.MentionSpan
@@ -42,6 +49,7 @@ import io.element.android.tests.testutils.robolectric.RobolectricTest
 import io.element.android.wysiwyg.view.spans.CustomMentionSpan
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Test
+import org.robolectric.annotation.Config
 
 class TimelineTextViewTest : RobolectricTest() {
     private val mentionSpanTheme = MentionSpanTheme(currentUserId = A_USER_ID)
@@ -128,6 +136,37 @@ class TimelineTextViewTest : RobolectricTest() {
         val result = getText(mentionSpanUpdater, aTextContentWithFormattedBody(charSequence))
         assertThat(result.getMentionSpans().firstOrNull()?.displayText.toString()).isEqualTo(expectedDisplayText)
         assert(formatLambda).isCalledOnce()
+    }
+
+    @Test
+    @Config(qualifiers = "vi")
+    fun `friend request reserves space for the rendered localized label, not the English body`() = runAndroidComposeUiTest<ComponentActivity> {
+        // The wire body is English; the rendered label is localized (ADR 0016). In the vi
+        // locale the label is wider than the body, so the timestamp space reservation must
+        // be computed from the rendered label, not from `content.body`.
+        var layoutData = ContentAvoidingLayoutData()
+        var probeLabelWidth = -1
+        val content = aTimelineItemTextContent(
+            body = "👋 Friend request",
+        ).copy(isFriendRequest = true)
+        setContent {
+            ElementPreview {
+                // Probe with the exact string and style the view renders for a friend request.
+                Text(
+                    text = stringResource(CommonStrings.friend_request_display),
+                    style = ElementTheme.typography.fontBodyLgRegular,
+                    onTextLayout = { probeLabelWidth = it.size.width },
+                )
+                TimelineItemTextView(
+                    content = content,
+                    onLinkClick = {},
+                    onLinkLongClick = {},
+                    onContentLayoutChange = { layoutData = it },
+                )
+            }
+        }
+        waitUntil(timeoutMillis = 5_000) { probeLabelWidth > 0 && layoutData.contentWidth > 0 }
+        assertThat(layoutData.contentWidth).isEqualTo(probeLabelWidth)
     }
 
     private suspend fun AndroidComposeUiTest<ComponentActivity>.getText(
