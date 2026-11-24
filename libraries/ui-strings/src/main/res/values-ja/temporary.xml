@@ -8,6 +8,7 @@
 <resources>
     <!-- Product (Z/L) brand theme strings, maintained divergence; not Localazy-managed. -->
     <string name="theme_brand_title">テーマ</string>
+    <string name="theme_brand_automatic">自動（言語に合わせる）</string>
     <string name="theme_brand_default">デフォルト</string>
     <string name="theme_brand_z">Zテーマ</string>
     <string name="theme_brand_l">Lテーマ</string>

@@ -98,9 +98,13 @@ class DefaultAppPreferencesStore(
         }
     }
 
-    override suspend fun setBrandTheme(brandTheme: String) {
+    override suspend fun setBrandTheme(brandTheme: String?) {
         store.edit { prefs ->
-            prefs[brandThemeKey] = brandTheme
+            if (brandTheme == null) {
+                prefs.remove(brandThemeKey)
+            } else {
+                prefs[brandThemeKey] = brandTheme
+            }
         }
     }
 

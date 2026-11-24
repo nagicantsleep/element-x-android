@@ -54,9 +54,16 @@ class AdvancedSettingsPresenter(
         val theme = remember(isBlackThemeAllowed) {
             appPreferencesStore.getThemeFlow().mapToTheme(isBlackThemeAllowed)
         }.collectAsState(initial = Theme.System)
-        val brandTheme = remember {
-            appPreferencesStore.getBrandThemeFlow().map { BrandTheme.fromStorage(it) }
-        }.collectAsState(initial = BrandTheme.Default)
+        val brandTheme by remember {
+            appPreferencesStore.getBrandThemeFlow().map { stored ->
+                when (stored) {
+                    null -> BrandThemeOption.Automatic
+                    BrandTheme.Default.storageValue -> BrandThemeOption.Default
+                    BrandTheme.Z.storageValue -> BrandThemeOption.Z
+                    else -> BrandThemeOption.L
+                }
+            }
+        }.collectAsState(initial = BrandThemeOption.Automatic)
 
         val liveLocationMinimumDistanceUpdate by produceState<Int?>(null) {
             appPreferencesStore.getLiveLocationMinimumDistanceInMetersUpdateFlow().collect { value = it }
@@ -71,16 +78,6 @@ class AdvancedSettingsPresenter(
                     Theme.Dark -> ThemeOption.Dark
                     Theme.Black -> ThemeOption.Black
                     Theme.Light -> ThemeOption.Light
-                }
-            }
-        }
-
-        val brandThemeOption by remember {
-            derivedStateOf {
-                when (brandTheme.value) {
-                    BrandTheme.Default -> BrandThemeOption.Default
-                    BrandTheme.Z -> BrandThemeOption.Z
-                    BrandTheme.L -> BrandThemeOption.L
                 }
             }
         }
@@ -139,13 +136,20 @@ class AdvancedSettingsPresenter(
                     }
                 }
                 is AdvancedSettingsEvent.SetBrandTheme -> sessionCoroutineScope.launch {
-                    appPreferencesStore.setBrandTheme(
-                        when (event.brandTheme) {
-                            BrandThemeOption.Default -> BrandTheme.Default.storageValue
-                            BrandThemeOption.Z -> BrandTheme.Z.storageValue
-                            BrandThemeOption.L -> BrandTheme.L.storageValue
-                        }
-                    )
+                    // Automatic is stored as "no explicit choice" (null), the resolved theme then
+                    // follows the app language (ADR 0016).
+                    if (event.brandTheme == BrandThemeOption.Automatic) {
+                        appPreferencesStore.setBrandTheme(null)
+                    } else {
+                        appPreferencesStore.setBrandTheme(
+                            when (event.brandTheme) {
+                                BrandThemeOption.Default -> BrandTheme.Default.storageValue
+                                BrandThemeOption.Z -> BrandTheme.Z.storageValue
+                                BrandThemeOption.L -> BrandTheme.L.storageValue
+                                BrandThemeOption.Automatic -> error("handled above")
+                            }
+                        )
+                    }
                 }
                 is AdvancedSettingsEvent.SetHideInviteAvatars -> mediaPreviewConfigStateStore.setHideInviteAvatars(event.value)
                 is AdvancedSettingsEvent.SetTimelineMediaPreviewValue -> mediaPreviewConfigStateStore.setTimelineMediaPreviewValue(event.value)
@@ -167,7 +171,7 @@ class AdvancedSettingsPresenter(
             mediaOptimizationState = mediaOptimizationState,
             theme = themeOption,
             availableThemeOptions = availableThemeOptions,
-            brandTheme = brandThemeOption,
+            brandTheme = brandTheme,
             availableBrandThemeOptions = availableBrandThemeOptions,
             mediaPreviewConfigState = mediaPreviewConfigState,
             liveLocationMinimumDistanceUpdate = liveLocationMinimumDistanceUpdate,

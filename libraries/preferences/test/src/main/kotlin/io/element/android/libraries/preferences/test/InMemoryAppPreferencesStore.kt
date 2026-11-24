@@ -78,7 +78,7 @@ class InMemoryAppPreferencesStore(
         return theme
     }
 
-    override suspend fun setBrandTheme(brandTheme: String) {
+    override suspend fun setBrandTheme(brandTheme: String?) {
         this.brandTheme.value = brandTheme
     }
 

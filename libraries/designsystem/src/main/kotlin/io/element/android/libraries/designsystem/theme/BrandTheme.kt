@@ -34,6 +34,23 @@ enum class BrandTheme(val storageValue: String) {
 }
 
 /**
+ * Resolves the effective brand theme per ADR 0016:
+ * 1. an explicit stored choice wins (a `null` stored value means "Automatic");
+ * 2. otherwise the effective app language: `vi` → Z, `ja` → L;
+ * 3. otherwise Default.
+ */
+fun BrandTheme.Companion.resolve(stored: String?, languageTag: String?): BrandTheme {
+    if (stored != null) {
+        return fromStorage(stored)
+    }
+    return when (languageTag?.substringBefore('-')?.lowercase()) {
+        "vi" -> BrandTheme.Z
+        "ja" -> BrandTheme.L
+        else -> BrandTheme.Default
+    }
+}
+
+/**
  * Returns the [SemanticColorsLightDark] to use for this [BrandTheme].
  *
  * [BrandTheme.Default] returns [base] unchanged, so the stock rendering is byte-for-byte identical.

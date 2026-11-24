@@ -13,6 +13,7 @@
 
     <!-- Product (Z/L) brand theme strings, maintained divergence; not Localazy-managed. -->
     <string name="theme_brand_title">Brand theme</string>
+    <string name="theme_brand_automatic">Automatic (by language)</string>
     <string name="theme_brand_default">Default</string>
     <string name="theme_brand_z">Z theme</string>
     <string name="theme_brand_l">L theme</string>

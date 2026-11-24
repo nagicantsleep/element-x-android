@@ -70,6 +70,12 @@ enum class ThemeOption : DropdownOption {
 }
 
 enum class BrandThemeOption : DropdownOption {
+    Automatic {
+        @Composable
+        @ReadOnlyComposable
+        override fun getText(): String = stringResource(CommonStrings.theme_brand_automatic)
+    },
+
     Default {
         @Composable
         @ReadOnlyComposable

@@ -378,6 +378,79 @@ class AdvancedSettingsPresenterTest {
         }
     }
 
+    @Test
+    fun `present - brand theme defaults to Automatic on a fresh install`() = runTest {
+        val presenter = createAdvancedSettingsPresenter()
+        moleculeFlow(RecompositionMode.Immediate) {
+            presenter.present()
+        }.test {
+            skipItems(1)
+
+            with(awaitItem()) {
+                assertThat(brandTheme).isEqualTo(BrandThemeOption.Automatic)
+            }
+        }
+    }
+
+    @Test
+    fun `present - brand theme exposes all options`() = runTest {
+        val presenter = createAdvancedSettingsPresenter()
+        moleculeFlow(RecompositionMode.Immediate) {
+            presenter.present()
+        }.test {
+            skipItems(1)
+
+            with(awaitItem()) {
+                assertThat(availableBrandThemeOptions).isEqualTo(
+                    listOf(
+                        BrandThemeOption.Automatic,
+                        BrandThemeOption.Default,
+                        BrandThemeOption.Z,
+                        BrandThemeOption.L,
+                    ).toImmutableList()
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `present - picking a brand theme stores the explicit choice`() = runTest {
+        val appPreferencesStore = InMemoryAppPreferencesStore()
+        val presenter = createAdvancedSettingsPresenter(appPreferencesStore = appPreferencesStore)
+        moleculeFlow(RecompositionMode.Immediate) {
+            presenter.present()
+        }.test {
+            skipItems(1)
+
+            with(awaitItem()) {
+                assertThat(brandTheme).isEqualTo(BrandThemeOption.Automatic)
+                eventSink(AdvancedSettingsEvent.SetBrandTheme(BrandThemeOption.Z))
+            }
+            with(awaitItem()) {
+                assertThat(brandTheme).isEqualTo(BrandThemeOption.Z)
+            }
+        }
+    }
+
+    @Test
+    fun `present - picking Automatic clears the stored choice`() = runTest {
+        val appPreferencesStore = InMemoryAppPreferencesStore(brandTheme = "z")
+        val presenter = createAdvancedSettingsPresenter(appPreferencesStore = appPreferencesStore)
+        moleculeFlow(RecompositionMode.Immediate) {
+            presenter.present()
+        }.test {
+            skipItems(1)
+
+            with(awaitItem()) {
+                assertThat(brandTheme).isEqualTo(BrandThemeOption.Z)
+                eventSink(AdvancedSettingsEvent.SetBrandTheme(BrandThemeOption.Automatic))
+            }
+            with(awaitItem()) {
+                assertThat(brandTheme).isEqualTo(BrandThemeOption.Automatic)
+            }
+        }
+    }
+
     private fun CoroutineScope.createAdvancedSettingsPresenter(
         appPreferencesStore: AppPreferencesStore = InMemoryAppPreferencesStore(),
         sessionPreferencesStore: InMemorySessionPreferencesStore = InMemorySessionPreferencesStore(),

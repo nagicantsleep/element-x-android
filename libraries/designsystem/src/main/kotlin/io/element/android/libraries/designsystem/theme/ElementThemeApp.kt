@@ -71,8 +71,9 @@ fun ElementThemeApp(
     val brandTheme by remember {
         appPreferencesStore.getBrandThemeFlow()
     }.collectAsState(initial = null)
-    val resolvedColors = remember(compoundLight, compoundDark, brandTheme) {
-        BrandTheme.fromStorage(brandTheme).semanticColors(
+    val languageTag = effectiveAppLanguageTag()
+    val resolvedColors = remember(compoundLight, compoundDark, brandTheme, languageTag) {
+        BrandTheme.resolve(brandTheme, languageTag).semanticColors(
             SemanticColorsLightDark(light = compoundLight, dark = compoundDark)
         )
     }

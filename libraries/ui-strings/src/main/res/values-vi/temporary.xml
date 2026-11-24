@@ -8,6 +8,7 @@
 <resources>
     <!-- Product (Z/L) brand theme strings, maintained divergence; not Localazy-managed. -->
     <string name="theme_brand_title">Chủ đề giao diện</string>
+    <string name="theme_brand_automatic">Tự động (theo ngôn ngữ)</string>
     <string name="theme_brand_default">Mặc định</string>
     <string name="theme_brand_z">Chủ đề Z</string>
     <string name="theme_brand_l">Chủ đề L</string>

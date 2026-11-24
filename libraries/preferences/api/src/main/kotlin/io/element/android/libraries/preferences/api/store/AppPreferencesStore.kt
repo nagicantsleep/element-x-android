@@ -44,10 +44,13 @@ interface AppPreferencesStore {
     /** The name of the chosen theme, or `null` when the user has not picked one and the system setting should be followed. */
     fun getThemeFlow(): Flow<String?>
 
-    /** The product (Z/L) brand theme storage value, or `null` when the default palette should be used. */
-    suspend fun setBrandTheme(brandTheme: String)
+    /**
+     * The product (Z/L) brand theme storage value, or `null` to store "Automatic"
+     * (no explicit choice; the palette then follows the app language, ADR 0016).
+     */
+    suspend fun setBrandTheme(brandTheme: String?)
 
-    /** The stored product (Z/L) brand theme storage value, or `null` when the default palette should be used. */
+    /** The stored product (Z/L) brand theme storage value, or `null` when no explicit choice is stored. */
     fun getBrandThemeFlow(): Flow<String?>
 
     /**
