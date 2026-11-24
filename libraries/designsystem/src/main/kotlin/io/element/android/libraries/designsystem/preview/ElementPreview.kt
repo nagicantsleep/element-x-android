@@ -25,6 +25,9 @@ import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.theme.Theme
+import io.element.android.libraries.designsystem.theme.BrandLayout
+import io.element.android.libraries.designsystem.theme.BrandTheme
+import io.element.android.libraries.designsystem.theme.LocalBrandLayout
 import io.element.android.libraries.designsystem.theme.components.Surface
 import io.element.android.libraries.designsystem.utils.CommonDrawables
 
@@ -46,20 +49,27 @@ fun ElementPreview(
         }
     ) {
         ElementTheme(theme = theme) {
-            val movableContent = remember { movableContentOf { content() } }
-            if (showBackground) {
-                // If we have a proper contentColor applied we need a Surface instead of a Box
-                Surface(
-                    modifier = if (fillMaxSize) Modifier.fillMaxSize() else Modifier,
-                    content = movableContent,
-                )
-            } else {
-                if (fillMaxSize) {
-                    Box(modifier = Modifier.fillMaxSize()) {
+            CompositionLocalProvider(
+                LocalBrandLayout provides BrandLayout.forTheme(
+                    theme = BrandTheme.Default,
+                    isLight = theme != Theme.Dark && theme != Theme.Black,
+                ),
+            ) {
+                val movableContent = remember { movableContentOf { content() } }
+                if (showBackground) {
+                    // If we have a proper contentColor applied we need a Surface instead of a Box
+                    Surface(
+                        modifier = if (fillMaxSize) Modifier.fillMaxSize() else Modifier,
+                        content = movableContent,
+                    )
+                } else {
+                    if (fillMaxSize) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            movableContent()
+                        }
+                    } else {
                         movableContent()
                     }
-                } else {
-                    movableContent()
                 }
             }
         }

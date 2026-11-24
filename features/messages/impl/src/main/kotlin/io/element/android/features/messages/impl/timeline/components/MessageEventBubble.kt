@@ -46,6 +46,7 @@ import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.text.toDp
 import io.element.android.libraries.designsystem.text.toPx
+import io.element.android.libraries.designsystem.theme.LocalBrandLayout
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.messageFromMeBackground
 import io.element.android.libraries.designsystem.theme.messageFromOtherBackground
@@ -54,8 +55,7 @@ import io.element.android.libraries.testtags.testTag
 import io.element.android.libraries.ui.utils.a11y.isTalkbackActive
 import io.element.android.libraries.ui.utils.graphics.drawInLayer
 
-// Z/L layout: rounder bubbles than upstream's 12.dp, matching the reference apps.
-private val BUBBLE_RADIUS = 18.dp
+// Z/L layout: the radius comes from the BrandLayout (18.dp for L, stock 12.dp otherwise).
 private val avatarRadius = AvatarSize.TimelineSender.dp / 2
 
 private val MIN_BUBBLE_WIDTH = 80.dp
@@ -87,7 +87,7 @@ fun MessageEventBubble(
     val cutTopStart = state.cutTopStart
     // Ignore state.isHighlighted for now, we need a design decision on it.
     val backgroundBubbleColor by rememberUpdatedState(customBackgroundColor ?: MessageEventBubbleDefaults.backgroundBubbleColor(state.isMine))
-    val bubbleShape = remember(state) { MessageEventBubbleDefaults.shape(state.cutTopStart, state.groupPosition, state.isMine) }
+    val bubbleShape = MessageEventBubbleDefaults.shape(state.cutTopStart, state.groupPosition, state.isMine)
     val radiusPx = (avatarRadius + SENDER_AVATAR_BORDER_WIDTH).toPx()
     val yOffsetPx = -(NEGATIVE_MARGIN_FOR_BUBBLE + avatarRadius).toPx()
 
@@ -150,40 +150,43 @@ fun MessageEventBubble(
 }
 
 object MessageEventBubbleDefaults {
+    @Composable
     fun shape(cutTopStart: Boolean, groupPosition: TimelineItemGroupPosition, isMine: Boolean): Shape {
-        val topLeftCorner = if (cutTopStart) 0.dp else BUBBLE_RADIUS
+        val radius = LocalBrandLayout.current.bubbleRadius
+        val topLeftCorner = if (cutTopStart) 0.dp else radius
         return when (groupPosition) {
             TimelineItemGroupPosition.First -> if (isMine) {
-                RoundedCornerShape(BUBBLE_RADIUS, BUBBLE_RADIUS, 0.dp, BUBBLE_RADIUS)
+                RoundedCornerShape(radius, radius, 0.dp, radius)
             } else {
-                RoundedCornerShape(topLeftCorner, BUBBLE_RADIUS, BUBBLE_RADIUS, 0.dp)
+                RoundedCornerShape(topLeftCorner, radius, radius, 0.dp)
             }
             TimelineItemGroupPosition.Middle -> if (isMine) {
-                RoundedCornerShape(BUBBLE_RADIUS, 0.dp, 0.dp, BUBBLE_RADIUS)
+                RoundedCornerShape(radius, 0.dp, 0.dp, radius)
             } else {
-                RoundedCornerShape(0.dp, BUBBLE_RADIUS, BUBBLE_RADIUS, 0.dp)
+                RoundedCornerShape(0.dp, radius, radius, 0.dp)
             }
             TimelineItemGroupPosition.Last -> if (isMine) {
-                RoundedCornerShape(BUBBLE_RADIUS, 0.dp, BUBBLE_RADIUS, BUBBLE_RADIUS)
+                RoundedCornerShape(radius, 0.dp, radius, radius)
             } else {
-                RoundedCornerShape(0.dp, BUBBLE_RADIUS, BUBBLE_RADIUS, BUBBLE_RADIUS)
+                RoundedCornerShape(0.dp, radius, radius, radius)
             }
             TimelineItemGroupPosition.None ->
                 RoundedCornerShape(
                     topLeftCorner,
-                    BUBBLE_RADIUS,
-                    BUBBLE_RADIUS,
-                    BUBBLE_RADIUS
+                    radius,
+                    radius,
+                    radius
                 )
         }
     }
 
     @Composable
     fun backgroundBubbleColor(isMine: Boolean): Color {
+        val layout = LocalBrandLayout.current
         return if (isMine) {
-            ElementTheme.colors.messageFromMeBackground
+            layout.outgoingBubbleColor ?: ElementTheme.colors.messageFromMeBackground
         } else {
-            ElementTheme.colors.messageFromOtherBackground
+            layout.incomingBubbleColor ?: ElementTheme.colors.messageFromOtherBackground
         }
     }
 

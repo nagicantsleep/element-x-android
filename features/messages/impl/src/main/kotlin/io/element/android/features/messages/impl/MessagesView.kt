@@ -109,6 +109,7 @@ import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.text.toAnnotatedString
 import io.element.android.libraries.designsystem.text.toDp
+import io.element.android.libraries.designsystem.theme.LocalBrandLayout
 import io.element.android.libraries.designsystem.theme.components.BottomSheetDragHandle
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.Scaffold
@@ -231,6 +232,7 @@ fun MessagesView(
             },
         content = {
             Scaffold(
+                containerColor = LocalBrandLayout.current.chatBackground ?: ElementTheme.colors.bgCanvasDefault,
                 contentWindowInsets = scaffoldScrollableContentInsets,
                 topBar = {
                     if (state.timelineState.timelineMode is Timeline.Mode.Thread) {

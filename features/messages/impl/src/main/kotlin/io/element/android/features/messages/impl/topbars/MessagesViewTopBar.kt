@@ -23,10 +23,12 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -48,6 +50,7 @@ import io.element.android.libraries.designsystem.components.button.BackButton
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.preview.ROOM_NAME
+import io.element.android.libraries.designsystem.theme.LocalBrandLayout
 import io.element.android.libraries.designsystem.theme.components.HorizontalDivider
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.TopAppBar
@@ -76,8 +79,21 @@ internal fun MessagesViewTopBar(
     modifier: Modifier = Modifier,
     menuActions: @Composable RowScope.() -> Unit,
 ) {
+    // Z layout (light mode): accent bar with white title/back/actions.
+    val accentColors = TopAppBarDefaults.topAppBarColors(
+        containerColor = ElementTheme.colors.bgAccentRest,
+        scrolledContainerColor = ElementTheme.colors.bgAccentRest,
+        navigationIconContentColor = Color.White,
+        titleContentColor = Color.White,
+        actionIconContentColor = Color.White,
+    )
     TopAppBar(
         modifier = modifier.padding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).asPaddingValues()),
+        colors = if (LocalBrandLayout.current.chatTopBarAccent && ElementTheme.colors.isLight) {
+            accentColors
+        } else {
+            TopAppBarDefaults.topAppBarColors()
+        },
         navigationIcon = {
             BackButton(onClick = onBackClick)
         },

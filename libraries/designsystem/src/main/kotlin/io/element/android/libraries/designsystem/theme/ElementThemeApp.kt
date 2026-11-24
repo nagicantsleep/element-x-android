@@ -77,6 +77,12 @@ fun ElementThemeApp(
             SemanticColorsLightDark(light = compoundLight, dark = compoundDark)
         )
     }
+    val brandLayout = remember(resolvedColors) {
+        BrandLayout.forTheme(
+            theme = BrandTheme.resolve(brandTheme, languageTag),
+            isLight = resolvedColors.light.isLight,
+        )
+    }
     LaunchedEffect(theme) {
         AppCompatDelegate.setDefaultNightMode(
             when (theme) {
@@ -88,6 +94,7 @@ fun ElementThemeApp(
     }
     CompositionLocalProvider(
         LocalBuildMeta provides buildMeta,
+        LocalBrandLayout provides brandLayout,
     ) {
         ElementTheme(
             theme = theme,

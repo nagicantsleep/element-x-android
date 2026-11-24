@@ -33,6 +33,7 @@ import io.element.android.features.messages.impl.utils.containsOnlyEmojis
 import io.element.android.libraries.androidutils.text.LinkifyHelper
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
+import io.element.android.libraries.designsystem.theme.LocalBrandLayout
 import io.element.android.libraries.designsystem.utils.LocalUiTestMode
 import io.element.android.libraries.textcomposer.ElementRichTextEditorStyle
 import io.element.android.libraries.textcomposer.mentions.LocalMentionSpanUpdater
@@ -61,8 +62,9 @@ fun TimelineItemTextView(
         emojiOnly -> ElementTheme.typography.fontHeadingXlRegular
         else -> ElementTheme.typography.fontBodyLgRegular
     }
+    val outgoingTextColor = LocalBrandLayout.current.outgoingTextColor
     CompositionLocalProvider(
-        LocalContentColor provides ElementTheme.colors.textPrimary,
+        LocalContentColor provides (outgoingTextColor ?: ElementTheme.colors.textPrimary),
         LocalTextStyle provides textStyle
     ) {
         val text = getTextWithResolvedMentions(content)
