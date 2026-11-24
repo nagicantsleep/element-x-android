@@ -16,7 +16,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
+import com.google.common.truth.Truth.assertThat
 import io.element.android.features.home.impl.HomeNavigationBarItem
 import io.element.android.features.home.impl.filters.aRoomListFiltersState
 import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
@@ -88,5 +90,38 @@ class HomeTopBarTest : RobolectricTest() {
         // Before the fix, the empty list took the pager branch whose snapshotFlow crashed with
         // IndexOutOfBoundsException (initialPage = 1 on a size-0 list).
         onNodeWithText("Messages").assertExists()
+    }
+
+    @Test
+    fun `Z header shows in-bar search pill opening search and white QR and compose actions, no large title`() = runAndroidComposeUiTest<ComponentActivity> {
+        var searchToggled = false
+        setContent {
+            CompositionLocalProvider(LocalBrandLayout provides BrandLayout.forTheme(BrandTheme.Z, isLight = true)) {
+                HomeTopBar(
+                    selectedNavigationItem = HomeNavigationBarItem.Messages,
+                    currentUserAndNeighbors = listOf(aMatrixUser()).toPersistentList(),
+                    showAvatarIndicator = false,
+                    areSearchResultsDisplayed = false,
+                    onToggleSearch = { searchToggled = true },
+                    onMenuActionClick = {},
+                    onOpenSettings = {},
+                    onAccountSwitch = EnsureNeverCalledWithParam<SessionId>(),
+                    onStartChatClick = {},
+                    scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
+                    canReportBug = true,
+                    displayFilters = false,
+                    filtersState = aRoomListFiltersState(),
+                    spaceFiltersState = SpaceFiltersState.Disabled,
+                )
+            }
+        }
+        // No large title: the tab label is not rendered as a heading.
+        onNodeWithText(activity!!.getString(HomeNavigationBarItem.Messages.labelRes)).assertDoesNotExist()
+        // The search pill opens the same search as before.
+        onNodeWithText(activity!!.getString(CommonStrings.action_search)).performClick()
+        assertThat(searchToggled).isTrue()
+        // White QR and compose actions are still present.
+        onNodeWithContentDescription(activity!!.getString(CommonStrings.screen_friends_my_qr_code)).assertExists()
+        onNodeWithContentDescription(activity!!.getString(CommonStrings.action_start_chat)).assertExists()
     }
 }

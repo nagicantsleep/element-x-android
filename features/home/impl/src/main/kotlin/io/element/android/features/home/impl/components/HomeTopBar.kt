@@ -253,8 +253,10 @@ fun HomeTopBar(
 }
 
 /**
- * Z theme room list header (light mode): a solid accent bar under the status bar with the
- * search field inside it and white QR / compose actions; no large title (ADR 0016).
+ * Z theme room list header (ADR 0016): a solid bar under the status bar with the search
+ * field inside it and white QR / compose actions; no large title; the account avatar is
+ * kept and opens Settings, as in the stock bar. Light uses the accent bar; dark uses a
+ * `bgSubtlePrimary` bar with stock text.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -266,10 +268,13 @@ private fun ZAccentRoomListHeader(
     onOpenSettings: () -> Unit,
     onToggleSearch: () -> Unit,
 ) {
+    val isLightTheme = ElementTheme.isLightTheme
+    val barColor = if (isLightTheme) ElementTheme.colors.bgAccentRest else ElementTheme.colors.bgSubtlePrimary
+    val contentColor = if (isLightTheme) Color.White else ElementTheme.colors.textPrimary
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(ElementTheme.colors.bgAccentRest)
+            .background(barColor)
             .statusBarsPadding()
     ) {
         Row(
@@ -279,7 +284,6 @@ private fun ZAccentRoomListHeader(
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Z header: the account avatar opens Settings, as in the stock bar.
             val headerUser = currentUserAndNeighbors.firstOrNull()
             if (headerUser != null) {
                 NavigationIcon(
@@ -292,37 +296,26 @@ private fun ZAccentRoomListHeader(
                 Spacer(Modifier.width(4.dp))
             }
             Spacer(Modifier.width(8.dp))
-            val displayTitle = when (spaceFiltersState) {
-                is SpaceFiltersState.Selected -> spaceFiltersState.selectedFilter.spaceRoom.displayName
-                else -> stringResource(selectedNavigationItem.labelRes)
-            }
-            Text(
-                text = displayTitle,
-                style = ElementTheme.typography.fontHeadingLgBold,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            SearchPill(
+                onClick = onToggleSearch,
                 modifier = Modifier.weight(1f),
+                containerColor = if (isLightTheme) Color.White.copy(alpha = 0.2f) else ElementTheme.colors.bgSubtleSecondary,
+                contentColor = contentColor,
+                iconColor = contentColor,
             )
-            IconButton(onClick = onToggleSearch) {
-                Icon(
-                    imageVector = CompoundIcons.Search(),
-                    contentDescription = stringResource(CommonStrings.action_search),
-                    tint = Color.White,
-                )
-            }
+            Spacer(Modifier.width(8.dp))
             IconButton(onClick = onOpenSettings) {
                 Icon(
                     imageVector = CompoundIcons.QrCode(),
                     contentDescription = stringResource(CommonStrings.screen_friends_my_qr_code),
-                    tint = Color.White,
+                    tint = contentColor,
                 )
             }
             IconButton(onClick = onStartChatClick) {
                 Icon(
                     imageVector = CompoundIcons.Plus(),
                     contentDescription = stringResource(CommonStrings.action_start_chat),
-                    tint = Color.White,
+                    tint = contentColor,
                 )
             }
         }
@@ -398,11 +391,14 @@ private fun LPlainRoomListHeader(
 private fun SearchPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    containerColor: Color = ElementTheme.colors.bgSubtlePrimary,
+    contentColor: Color = ElementTheme.colors.textSecondary,
+    iconColor: Color = ElementTheme.colors.iconSecondary,
 ) {
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(ElementTheme.colors.bgSubtlePrimary)
+            .background(containerColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -410,14 +406,14 @@ private fun SearchPill(
         Icon(
             imageVector = CompoundIcons.Search(),
             contentDescription = null,
-            tint = ElementTheme.colors.iconSecondary,
+            tint = iconColor,
             modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
         Text(
             text = stringResource(CommonStrings.action_search),
             style = ElementTheme.typography.fontBodyMdRegular,
-            color = ElementTheme.colors.textSecondary,
+            color = contentColor,
         )
     }
 }
