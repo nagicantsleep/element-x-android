@@ -12,7 +12,17 @@
     <string name="theme_brand_default">デフォルト</string>
     <string name="theme_brand_z">Zテーマ</string>
     <string name="theme_brand_l">Lテーマ</string>
+    <string name="common_read">"既読"</string>
+    <string name="common_read_count">"既読 %1$d"</string>
+
+    <!-- Friend request display label (ADR 0016); the sent body stays English. -->
+    <string name="friend_request_display">"👋 フレンド申請"</string>
 
     <!-- Friends (Z/L feature), maintained divergence; not Localazy-managed. -->
     <string name="screen_friends_title">フレンド</string>
+    <string name="screen_friends_my_qr_code">マイQRコード</string>
+
+    <!-- Compact key-backup banner (ADR 0016). -->
+    <string name="banner_recovery_compact_set_up">"チャットをバックアップ"</string>
+    <string name="banner_recovery_compact_confirm">"回復鍵を確認"</string>
 </resources>

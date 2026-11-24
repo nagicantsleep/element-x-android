@@ -18,6 +18,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,6 +26,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.features.messages.impl.timeline.components.layout.ContentAvoidingLayout
 import io.element.android.features.messages.impl.timeline.components.layout.ContentAvoidingLayoutData
+import io.element.android.features.messages.impl.timeline.factories.event.FRIEND_REQUEST_DISPLAY_SENTINEL
 import io.element.android.features.messages.impl.timeline.model.event.AN_EMOJI_ONLY_TEXT
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextBasedContent
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextBasedContentPreviewParam
@@ -34,7 +36,9 @@ import io.element.android.libraries.androidutils.text.LinkifyHelper
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.LocalBrandLayout
+import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.utils.LocalUiTestMode
+import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.libraries.textcomposer.ElementRichTextEditorStyle
 import io.element.android.libraries.textcomposer.mentions.LocalMentionSpanUpdater
 import io.element.android.wysiwyg.compose.EditorStyledText
@@ -63,20 +67,31 @@ fun TimelineItemTextView(
         else -> ElementTheme.typography.fontBodyLgRegular
     }
     val outgoingTextColor = LocalBrandLayout.current.outgoingTextColor
+    // Friend-request marker events arrive with a sentinel body; render the localized label
+    // instead (ADR 0016). The sent body stays English on the wire.
+    val renderedText = if (content.body == FRIEND_REQUEST_DISPLAY_SENTINEL) {
+        stringResource(CommonStrings.friend_request_display)
+    } else {
+        null
+    }
     CompositionLocalProvider(
         LocalContentColor provides (outgoingTextColor ?: ElementTheme.colors.textPrimary),
         LocalTextStyle provides textStyle
     ) {
         val text = getTextWithResolvedMentions(content)
-        Box(modifier.semantics { contentDescription = content.plainText }) {
-            EditorStyledText(
-                text = text,
-                onLinkClickedListener = onLinkClick,
-                onLinkLongClickedListener = onLinkLongClick,
-                style = ElementRichTextEditorStyle.textStyle(),
-                onTextLayout = ContentAvoidingLayout.measureLegacyLastTextLine(onContentLayoutChange = onContentLayoutChange),
-                releaseOnDetach = false,
-            )
+        Box(modifier.semantics { contentDescription = renderedText ?: content.plainText }) {
+            if (renderedText != null) {
+                Text(text = renderedText)
+            } else {
+                EditorStyledText(
+                    text = text,
+                    onLinkClickedListener = onLinkClick,
+                    onLinkLongClickedListener = onLinkLongClick,
+                    style = ElementRichTextEditorStyle.textStyle(),
+                    onTextLayout = ContentAvoidingLayout.measureLegacyLastTextLine(onContentLayoutChange = onContentLayoutChange),
+                    releaseOnDetach = false,
+                )
+            }
         }
     }
 }

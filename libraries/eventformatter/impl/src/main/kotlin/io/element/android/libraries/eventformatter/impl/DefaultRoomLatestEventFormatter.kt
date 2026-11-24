@@ -49,6 +49,9 @@ import io.element.android.libraries.matrix.ui.messages.toPlainText
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.services.toolbox.api.strings.StringProvider
 
+/** The `msgtype` of the friend-request DM marker message, shared with the web fork. */
+private const val FRIEND_REQUEST_DISPLAY_MSGTYPE = "m.friend_request"
+
 @ContributesBinding(SessionScope::class)
 class DefaultRoomLatestEventFormatter(
     private val sp: StringProvider,
@@ -166,7 +169,13 @@ class DefaultRoomLatestEventFormatter(
                     ?: sp.getString(CommonStrings.common_voice_message)
             }
             is OtherMessageType -> {
-                messageType.body
+                // Friend requests keep the English body on the wire (interop) but render
+                // with a localized label (ADR 0016).
+                if (messageType.msgType == FRIEND_REQUEST_DISPLAY_MSGTYPE) {
+                    sp.getString(CommonStrings.friend_request_display)
+                } else {
+                    messageType.body
+                }
             }
             is GalleryMessageType -> {
                 messageType.body.prefixWith(sp.getString(CommonStrings.common_gallery))

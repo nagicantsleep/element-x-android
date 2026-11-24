@@ -8,14 +8,19 @@
 
 package io.element.android.features.home.impl.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
@@ -23,6 +28,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
@@ -53,6 +61,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -79,6 +88,8 @@ import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.preview.USER_NAME_ALICE
 import io.element.android.libraries.designsystem.text.AdaptativeTitle
+import io.element.android.libraries.designsystem.theme.LocalBrandLayout
+import io.element.android.libraries.designsystem.theme.RoomListHeaderLayout
 import io.element.android.libraries.designsystem.theme.components.DropdownMenu
 import io.element.android.libraries.designsystem.theme.components.DropdownMenuItem
 import io.element.android.libraries.designsystem.theme.components.Icon
@@ -121,6 +132,31 @@ fun HomeTopBar(
     modifier: Modifier = Modifier,
 ) {
     val contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).asPaddingValues()
+    val brandLayout = LocalBrandLayout.current
+    when (brandLayout.roomListHeader) {
+        RoomListHeaderLayout.ZAccentBar -> {
+            ZAccentRoomListHeader(
+                selectedNavigationItem = selectedNavigationItem,
+                currentUserAndNeighbors = currentUserAndNeighbors,
+                spaceFiltersState = spaceFiltersState,
+                onStartChatClick = onStartChatClick,
+                onOpenSettings = onOpenSettings,
+                onToggleSearch = onToggleSearch,
+            )
+            return
+        }
+        RoomListHeaderLayout.LPlain -> {
+            LPlainRoomListHeader(
+                selectedNavigationItem = selectedNavigationItem,
+                onStartChatClick = onStartChatClick,
+                onOpenSettings = onOpenSettings,
+                onToggleSearch = onToggleSearch,
+                contentPadding = contentPadding,
+            )
+            return
+        }
+        RoomListHeaderLayout.Stock -> Unit
+    }
     Column(modifier) {
         TopAppBar(
             modifier = Modifier
@@ -210,6 +246,173 @@ fun HomeTopBar(
                 )
             }
         }
+    }
+}
+
+/**
+ * Z theme room list header (light mode): a solid accent bar under the status bar with the
+ * search field inside it and white QR / compose actions; no large title (ADR 0016).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ZAccentRoomListHeader(
+    selectedNavigationItem: HomeNavigationBarItem,
+    currentUserAndNeighbors: ImmutableList<MatrixUser>,
+    spaceFiltersState: SpaceFiltersState,
+    onStartChatClick: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onToggleSearch: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ElementTheme.colors.bgAccentRest)
+            .statusBarsPadding()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Z header: the account avatar opens Settings, as in the stock bar.
+            val headerUser = currentUserAndNeighbors.firstOrNull()
+            if (headerUser != null) {
+                NavigationIcon(
+                    currentUserAndNeighbors = persistentListOf(headerUser),
+                    showAvatarIndicator = false,
+                    onAccountSwitch = {},
+                    onClick = onOpenSettings,
+                )
+            } else {
+                Spacer(Modifier.width(4.dp))
+            }
+            Spacer(Modifier.width(8.dp))
+            val displayTitle = when (spaceFiltersState) {
+                is SpaceFiltersState.Selected -> spaceFiltersState.selectedFilter.spaceRoom.displayName
+                else -> stringResource(selectedNavigationItem.labelRes)
+            }
+            Text(
+                text = displayTitle,
+                style = ElementTheme.typography.fontHeadingLgBold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onToggleSearch) {
+                Icon(
+                    imageVector = CompoundIcons.Search(),
+                    contentDescription = stringResource(CommonStrings.action_search),
+                    tint = Color.White,
+                )
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(
+                    imageVector = CompoundIcons.QrCode(),
+                    contentDescription = stringResource(CommonStrings.screen_friends_my_qr_code),
+                    tint = Color.White,
+                )
+            }
+            IconButton(onClick = onStartChatClick) {
+                Icon(
+                    imageVector = CompoundIcons.Plus(),
+                    contentDescription = stringResource(CommonStrings.action_start_chat),
+                    tint = Color.White,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * L theme room list header: plain canvas, bold title on the left, plain (not circular)
+ * action icons on the right and a grey search pill below (ADR 0016).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LPlainRoomListHeader(
+    selectedNavigationItem: HomeNavigationBarItem,
+    onStartChatClick: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onToggleSearch: () -> Unit,
+    contentPadding: PaddingValues,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(contentPadding)
+            .padding(vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            NavigationIcon(
+                currentUserAndNeighbors = persistentListOf(),
+                showAvatarIndicator = false,
+                onAccountSwitch = {},
+                onClick = onOpenSettings,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = stringResource(selectedNavigationItem.labelRes),
+                style = ElementTheme.typography.fontHeadingLgBold,
+                color = ElementTheme.colors.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onToggleSearch) {
+                Icon(
+                    imageVector = CompoundIcons.Search(),
+                    contentDescription = stringResource(CommonStrings.action_search),
+                )
+            }
+            IconButton(onClick = onStartChatClick) {
+                Icon(
+                    imageVector = CompoundIcons.Plus(),
+                    contentDescription = stringResource(CommonStrings.action_start_chat),
+                )
+            }
+        }
+        SearchPill(
+            onClick = onToggleSearch,
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun SearchPill(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(ElementTheme.colors.bgSubtlePrimary)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = CompoundIcons.Search(),
+            contentDescription = null,
+            tint = ElementTheme.colors.iconSecondary,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = stringResource(CommonStrings.action_search),
+            style = ElementTheme.typography.fontBodyMdRegular,
+            color = ElementTheme.colors.textSecondary,
+        )
     }
 }
 
@@ -318,6 +521,7 @@ private fun NavigationIcon(
     showAvatarIndicator: Boolean,
     onAccountSwitch: (SessionId) -> Unit,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     if (currentUserAndNeighbors.size == 1) {
         AccountIcon(
@@ -325,6 +529,7 @@ private fun NavigationIcon(
             isCurrentAccount = true,
             showAvatarIndicator = showAvatarIndicator,
             onClick = onClick,
+            modifier = modifier,
         )
     } else {
         // Render a vertical pager
@@ -338,7 +543,7 @@ private fun NavigationIcon(
         }
         VerticalPager(
             state = pagerState,
-            modifier = Modifier.height(48.dp),
+            modifier = modifier.height(48.dp),
         ) { page ->
             AccountIcon(
                 matrixUser = currentUserAndNeighbors[page],

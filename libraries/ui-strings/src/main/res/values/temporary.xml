@@ -17,7 +17,17 @@
     <string name="theme_brand_default">Default</string>
     <string name="theme_brand_z">Z theme</string>
     <string name="theme_brand_l">L theme</string>
+    <string name="common_read">"Read"</string>
+    <string name="common_read_count">"Read %1$d"</string>
+
+    <!-- Friend request display label (ADR 0016); the sent body stays English. -->
+    <string name="friend_request_display">"👋 Friend request"</string>
 
     <!-- Friends (Z/L feature), maintained divergence; not Localazy-managed. -->
     <string name="screen_friends_title">Friends</string>
+    <string name="screen_friends_my_qr_code">My QR code</string>
+
+    <!-- Compact key-backup banner (ADR 0016). -->
+    <string name="banner_recovery_compact_set_up">"Set up chat backup"</string>
+    <string name="banner_recovery_compact_confirm">"Confirm your recovery key"</string>
 </resources>

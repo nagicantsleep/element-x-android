@@ -43,6 +43,7 @@ import io.element.android.libraries.designsystem.components.avatar.AvatarType
 import io.element.android.libraries.designsystem.components.avatar.getBestName
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
+import io.element.android.libraries.designsystem.theme.LocalBrandLayout
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
@@ -59,10 +60,23 @@ fun TimelineItemReadReceiptView(
 ) {
     if (state.receipts.isNotEmpty()) {
         ReadReceiptsRow(modifier = modifier) {
-            ReadReceiptsAvatars(
-                receipts = state.receipts,
-                onClick = onReadReceiptsClick,
-            )
+            if (LocalBrandLayout.current.readReceiptLabel) {
+                // L layout: a text label instead of the receipt avatars (ADR 0016).
+                Text(
+                    text = readReceiptLabelText(state.receipts.size),
+                    style = ElementTheme.typography.fontBodyXsRegular,
+                    color = ElementTheme.colors.textSecondary,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable(onClick = onReadReceiptsClick)
+                        .padding(2.dp),
+                )
+            } else {
+                ReadReceiptsAvatars(
+                    receipts = state.receipts,
+                    onClick = onReadReceiptsClick,
+                )
+            }
         }
     } else {
         when (state.sendState) {
@@ -174,6 +188,15 @@ private fun ReadReceiptsAvatars(
                 color = ElementTheme.colors.textSecondary,
             )
         }
+    }
+}
+
+@Composable
+private fun readReceiptLabelText(count: Int): String {
+    return if (count == 1) {
+        stringResource(CommonStrings.common_read)
+    } else {
+        stringResource(CommonStrings.common_read_count, count)
     }
 }
 

@@ -56,6 +56,7 @@ import io.element.android.libraries.matrix.ui.messages.toHtmlDocument
 import io.element.android.libraries.mediaviewer.api.util.FileExtensionExtractor
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import io.element.android.libraries.ui.strings.CommonStrings
 import org.jsoup.nodes.Document
 import kotlin.time.Duration
 
@@ -63,6 +64,18 @@ private const val MIN_IMAGE_SIZE = 1L
 private const val MAX_IMAGE_SIZE = 10_000L
 private const val MIN_ASPECT_RATIO = 0.001f
 private const val MAX_ASPECT_RATIO = 10f
+
+/**
+ * The `msgtype` of the friend-request DM marker message, shared with the web fork.
+ * The renderer replaces [FRIEND_REQUEST_DISPLAY_SENTINEL] with the localized label.
+ */
+const val FRIEND_REQUEST_DISPLAY_MSGTYPE = "m.friend_request"
+
+/**
+ * Sentinel body emitted for friend-request marker events so the view layer can render
+ * the localized label (`CommonStrings.friend_request_display`). Never displayed as-is.
+ */
+const val FRIEND_REQUEST_DISPLAY_SENTINEL = "\u200Bm.friend_request\u200B"
 
 @Inject
 class TimelineItemContentMessageFactory(
@@ -416,7 +429,14 @@ class TimelineItemContentMessageFactory(
                 }
             }
             is OtherMessageType -> {
-                val body = messageType.body.trimEnd()
+                // Friend requests keep the English body on the wire (interop) but must render
+                // with a localized label (ADR 0016). The factory is not @Composable, so it emits
+                // the sentinel and the view substitutes the localized label.
+                val body = if (messageType.msgType == FRIEND_REQUEST_DISPLAY_MSGTYPE) {
+                    FRIEND_REQUEST_DISPLAY_SENTINEL
+                } else {
+                    messageType.body
+                }.trimEnd()
                 TimelineItemTextContent(
                     body = body,
                     htmlDocument = null,
